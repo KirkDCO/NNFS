@@ -70,6 +70,40 @@ d.relu = function(a) {
 }
 
 ###############
+# Gradients of the activations functions
+###############
+
+avg.grad.linear = function(error=NULL, X.trn=NULL) {
+  
+  # error = output errors
+  # X.trn = training set X values
+  
+  d = d.linear()
+  
+  grad = -matrix(rep(error * d, 2),ncol=2) * X.trn
+  avg.grad = colSums(grad)/dim(grad)[2]
+  avg.grad = matrix(avg.grad, nrow=dim(grad)[2])
+  
+  avg.grad
+}
+
+avg.grad.sigmoid = function() {
+  
+}
+
+avg.grad.relu = function() {
+  
+}
+
+avg.grad.tanh = function() {
+  
+}
+
+avg.grad.softmax = function() {
+  
+}
+
+###############
 # Define the NN
 ###############
 
@@ -173,21 +207,16 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL) {
       
       #get the right derivative function
       if( NNmod$layers[[layer]]$activation == 'linear' ){
-        d = d.linear()
+        avg.grad = avg.grad.linear(error, X.trn)
       }else if( NNmod$layers[[layer]]$activation == 'sigmoid' ){
-        d = d.sigmoid(NNmod$layers[[layer]]$a)
+        avg.grad = avg.grad.sigmoid()
       }else if( NNmod$layers[[layer]]$activation == 'relu' ){
-        d = d.relu(NNmod$layers[[layer]]$a)
+        avg.grad = avg.grad.relu()
       }else if(NNmod$layers[[layer]]$activation == 'tanh' ){
-        d = d.tahn(NNmod$layers[[layer]]$a)
+        avg.grad = avg.grad.tanh()
       }else if(NNmod$layers[[layer]]$activation == 'softmax' ){
-        d = d.softmax(a=NNmod$layers[[layer]]$a, y=Y.trn)
+        avg.grad = avg.grad.softmax()
       }
-      
-      
-      grad = -matrix(rep(error * d,2),ncol=2) * X.trn
-      avg.grad = colSums(grad)/dim(grad)[2]
-      avg.grad = matrix(avg.grad, nrow=dim(grad)[2])
     }
     
     NNmod$layers[[layer]]$weights = NNmod$layers[[layer]]$weights - 
