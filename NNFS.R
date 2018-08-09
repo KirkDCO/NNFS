@@ -75,7 +75,7 @@ d.relu = function(a) {
 
 NNModel = function( input.dim = NULL, layers = NULL, activations = NULL, 
                     batch.norm = NULL, drop.out.rate = NULL,
-                    learning.rate = 0.01 ) {
+                    learning.rate = 0.01, seed=20150808) {
   
   # input.dim = dimensions of input
   # layers = vector of number of nodes per hidden/output layer
@@ -87,6 +87,9 @@ NNModel = function( input.dim = NULL, layers = NULL, activations = NULL,
   # assumed all vectors same length = number of layers
   
   # returns a list structured for later computations
+  
+  #set the random seed to ensure ability to regenerate this network
+  set.seed(seed)
   
   nn = list( layers = list(), learning.rate = learning.rate)
   
@@ -146,10 +149,11 @@ forward.prop = function(NNmod = NULL, X=NULL){
   NNmod
 }
 
-back.prop = function(NNmod=NULL, expected.outputs=NULL) {
+back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL) {
   
   # NNModel = list generated from NNModel() function above
-  # expected.outputs = vector of the actual y-values being modeled
+  # Y.trn = vector of the actual y-values being modeled
+  # X.trn = training set (or minibatch) for this round
   
   # returns a NNModel list with updated weights
   
@@ -158,34 +162,43 @@ back.prop = function(NNmod=NULL, expected.outputs=NULL) {
   for( l in length(layers):1 ){
     layer = layers[l]
     
-    #get the right derivative function
-    if( NNmod$layers[[layer]]$activation == 'linear' ){
-      d = d.linear
-    }else if( NNmod$layers[[layer]]$activation == 'sigmoid' ){
-      d = d.sigmoid
-    }else if( NNmod$layers[[layer]]$activation == 'relu' ){
-      d = d.relu
-    }else if(NNmod$layers[[layer]]$activation == 'tanh' ){
-      d = d.tahn
-    }else if(NNmod$layers[[layer]]$activation == 'softmax' ){
-      d = d.softmax
-    }
-    
     if( l == length(layers) ){
       #we're at the output layer
-      avg.error = sum(expected.outputs - NNmod$layers[[layers[l]]]$a) / dim(expected.outputs)[2]
-      grad = -(avg.error) * d()
+      #need to deal with softmax in a special way
+      if(NNmod$layers[[layer]]$activation == 'softmax'){
+        #do something different
+      }else{
+        error = Y.trn - NNmod$layers[[layers[l]]]$a
+      }
+      
+      #get the right derivative function
+      if( NNmod$layers[[layer]]$activation == 'linear' ){
+        d = d.linear()
+      }else if( NNmod$layers[[layer]]$activation == 'sigmoid' ){
+        d = d.sigmoid(NNmod$layers[[layer]]$a)
+      }else if( NNmod$layers[[layer]]$activation == 'relu' ){
+        d = d.relu(NNmod$layers[[layer]]$a)
+      }else if(NNmod$layers[[layer]]$activation == 'tanh' ){
+        d = d.tahn(NNmod$layers[[layer]]$a)
+      }else if(NNmod$layers[[layer]]$activation == 'softmax' ){
+        d = d.softmax(a=NNmod$layers[[layer]]$a, y=Y.trn)
+      }
+      
+      
+      grad = -matrix(rep(error * d,2),ncol=2) * X.trn
+      avg.grad = colSums(grad)/dim(grad)[2]
+      avg.grad = matrix(avg.grad, nrow=dim(grad)[2])
     }
     
     NNmod$layers[[layer]]$weights = NNmod$layers[[layer]]$weights - 
-      NNmod$learning.rate * grad
+      NNmod$learning.rate * avg.grad
   }
   
   NNmod
 }
 
 train = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, X.tst=NULL, Y.tst=NULL,
-                 mini.batch.size=NULL, epochs=NULL) {
+                 mini.batch.size=NULL, epochs=NULL, seed=20180808) {
   
   # NNModel =list generated from NNModel() function above
   # X.trn = the training dataset, organized as observations X covariates (nXm)
@@ -197,18 +210,22 @@ train = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, X.tst=NULL, Y.tst=NULL,
   
   # returns a NNModel list with trained weights
   
+  #set the random seed here
+  set.seed(seed)
+  
+  #compute number of batches needed for a full epoch
   batches = ceiling(dim(X.trn)[1]/mini.batch.size)
     
   for( e in 1:epochs ){
     mini.batch.order = sample(dim(X.trn)[1])
     for( mb in 0:(batches-1) ){
       mb.start = (mini.batch.size*mb+1)
-      mb.stop = min((mini.batch.size*(mb+1)), dim(X)[1])
-      mini.batch.X = X.trn[ mb.start:mb.stop, ]
-      mini.batch.Y = Y.trn[ mb.start:mb.stop, , drop=F]
+      mb.stop = min((mini.batch.size*(mb+1)), dim(X.trn)[1])
+      mini.batch.X = X.trn[ mini.batch.order[mb.start:mb.stop], ]
+      mini.batch.Y = Y.trn[ mini.batch.order[mb.start:mb.stop], , drop=F]
       
       NNmod = forward.prop(NNmod, X=mini.batch.X)
-      NNmod = back.prop(NNmod, expected.outputs=mini.batch.Y)
+      NNmod = back.prop(NNmod, X=mini.batch.X, Y.trn=mini.batch.Y)
     }
   }
   NNmod
