@@ -147,7 +147,7 @@ NNModel = function( input.dim = NULL, layers = NULL, activations = NULL,
 # Model functions
 #################
 
-forward.prop = function(NNmod = NULL, X=NULL){
+forward.prop = function(NNmod = NULL, X.trn=NULL){
   
   # NNmod = list generated from NNmod() function above
   # X = matrix of inputs (1 x m) of appropriate dimensions for the NNmod
@@ -162,7 +162,7 @@ forward.prop = function(NNmod = NULL, X=NULL){
   for(l in 1:length(layers)){
     
     if( l == 1 ){
-      z = X %*% NNmod$layers[[layers[l]]]$weights
+      z = X.trn %*% NNmod$layers[[layers[l]]]$weights
     }else{
       z = lout[[layers[l-1]]] %*% NNmod$layers[[layers[l]]]$weights
     }
@@ -191,34 +191,32 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL) {
   
   # returns a NNModel list with updated weights
   
-  #start with single layer
   layers = names(NNmod$layers)
   for( l in length(layers):1 ){
     layer = layers[l]
     
-    if( l == length(layers) ){
-      #we're at the output layer
-      #need to deal with softmax in a special way
-      if(NNmod$layers[[layer]]$activation == 'softmax'){
-        #do something different
-      }else{
-        error = Y.trn - NNmod$layers[[layers[l]]]$a
-      }
-      
-      #get the right derivative function
-      if( NNmod$layers[[layer]]$activation == 'linear' ){
-        avg.grad = avg.grad.linear(error, X.trn)
-      }else if( NNmod$layers[[layer]]$activation == 'sigmoid' ){
-        avg.grad = avg.grad.sigmoid()
-      }else if( NNmod$layers[[layer]]$activation == 'relu' ){
-        avg.grad = avg.grad.relu()
-      }else if(NNmod$layers[[layer]]$activation == 'tanh' ){
-        avg.grad = avg.grad.tanh()
-      }else if(NNmod$layers[[layer]]$activation == 'softmax' ){
-        avg.grad = avg.grad.softmax()
-      }
+    #get the right derivative function
+    if( NNmod$layers[[layer]]$activation == 'linear' ){
+      d = d.linear()
+    }else if( NNmod$layers[[layer]]$activation == 'sigmoid' ){
+      d = d.sigmoid(NULL)
+    }else if( NNmod$layers[[layer]]$activation == 'relu' ){
+      d = d.relu(NULL)
+    }else if(NNmod$layers[[layer]]$activation == 'tanh' ){
+      d = d.tanh(NULL)
+    }else if(NNmod$layers[[layer]]$activation == 'softmax' ){
+      d = d.softmax(NULL)
     }
     
+    if( l == length(layers) ){  #we're at the output layer
+      delta = Y.trn - NNmod$layers[[layer]]$a
+    }
+    
+    if( l == 1 ) {   #we're at the first layer
+      grad = apply(X.trn, 2, function(Xi) { Xi * delta }) 
+    }
+    
+    avg.grad = matrix(colMeans(grad), nrow = dim(grad)[2])
     NNmod$layers[[layer]]$weights = NNmod$layers[[layer]]$weights - 
       NNmod$learning.rate * avg.grad
   }
@@ -253,8 +251,8 @@ train = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, X.tst=NULL, Y.tst=NULL,
       mini.batch.X = X.trn[ mini.batch.order[mb.start:mb.stop], ]
       mini.batch.Y = Y.trn[ mini.batch.order[mb.start:mb.stop], , drop=F]
       
-      NNmod = forward.prop(NNmod, X=mini.batch.X)
-      NNmod = back.prop(NNmod, X=mini.batch.X, Y.trn=mini.batch.Y)
+      NNmod = forward.prop(NNmod, X.trn=mini.batch.X)
+      NNmod = back.prop(NNmod, X.trn=mini.batch.X, Y.trn=mini.batch.Y)
     }
   }
   NNmod
