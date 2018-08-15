@@ -217,7 +217,7 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL) {
     }
     
     avg.grad = matrix(colMeans(grad), nrow = dim(grad)[2])
-    NNmod$layers[[layer]]$weights = NNmod$layers[[layer]]$weights - 
+    NNmod$layers[[layer]]$weights = NNmod$layers[[layer]]$weights + 
       NNmod$learning.rate * avg.grad
   }
   
