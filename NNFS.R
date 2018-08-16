@@ -130,8 +130,9 @@ forward.prop = function(NNmod = NULL, X.trn=NULL){
       a = X.trn %*% NNmod$layers[[layers[l]]]$weights
     }else{
       a = NNmod$layers[[layers[l-1]]]$z %*% NNmod$layers[[layers[l]]]$weights
-      NNmod$layers[[layers[l]]]$a = a
     }
+    
+    NNmod$layers[[layers[l]]]$a = a
     
     if( NNmod$layers[[layers[l]]]$activation == 'linear' ){
       NNmod$layers[[layers[l]]]$z = linear(a)
@@ -156,43 +157,50 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL) {
   # X.trn = training set (or minibatch) for this round
   
   # returns a NNModel list with updated weights
- 
-  layers = names(NNmod$layers)
+  
+  NNmod.old = NNmod
+  
+  layers = names(NNmod.old$layers)
   for( l in length(layers):1 ){
     layer = layers[l]
     
     #get the right derivative function
-    if( NNmod$layers[[layer]]$activation == 'linear' ){
+    if( NNmod.old$layers[[layer]]$activation == 'linear' ){
       d = d.linear()
-    }else if( NNmod$layers[[layer]]$activation == 'sigmoid' ){
+    }else if( NNmod.old$layers[[layer]]$activation == 'sigmoid' ){
       d = d.sigmoid(NULL)
-    }else if( NNmod$layers[[layer]]$activation == 'relu' ){
+    }else if( NNmod.old$layers[[layer]]$activation == 'relu' ){
       d = d.relu(NULL)
-    }else if(NNmod$layers[[layer]]$activation == 'tanh' ){
+    }else if(NNmod.old$layers[[layer]]$activation == 'tanh' ){
       d = d.tanh(NULL)
-    }else if(NNmod$layers[[layer]]$activation == 'softmax' ){
+    }else if(NNmod.old$layers[[layer]]$activation == 'softmax' ){
       d = d.softmax(NULL)
     }
     
     #compute deltas
     if( l == length(layers) ){  #we're at the output layer
-      delta = Y.trn - NNmod$layers[[layer]]$z
+      delta = Y.trn - NNmod.old$layers[[layer]]$z
     }else{
-      delta = d() * NNmod$layers[[layer]]$weights %*% delta
+      next.layer = layers[l+1]
+      delta = delta %*% t(NNmod$layers[[next.layer]]$weights)
     }
     
     #compute gradients
+    wt.dim = dim(NNmod$layers[[layer]]$weights)
+    grad = matrix( rep(0,wt.dim[1]*wt.dim[2]), nrow=wt.dim[1])
     if( l == 1 ) {   #we're at the first layer
-      grad = apply(X.trn, 2, function(Xi) { Xi * delta }) 
+      for( i in 1:dim(X.trn)[1] ){
+        grad = grad + t(X.trn[i, , drop=FALSE]) %*% delta[i, , drop=FALSE]
+      }
     }else{
       prev.layer = layers[l-1]
-      grad = apply(NNmod$layers[[prev.layer]]$z, 2, function(zi) {
-        zi * delta
-      })
+      for( i in 1:dim(X.trn)[1] ){
+        grad = grad + t(NNmod.old$layers[[prev.layer]]$z[i, , drop=FALSE]) %*% delta[i, , drop=FALSE]
+      }
     }
+    avg.grad = grad / dim(delta)[1]
     
     #adjust weights by average gradient
-    avg.grad = matrix(colMeans(grad), nrow = dim(grad)[2])
     NNmod$layers[[layer]]$weights = NNmod$layers[[layer]]$weights + 
       NNmod$learning.rate * avg.grad
   }
