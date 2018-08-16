@@ -7,21 +7,21 @@
 ## Activation functions
 #######################
 
-linear = function(z) {
-  z
+linear = function(a) {
+  a
 }
 
-sigmoid = function(z) {
-  1/(1+exp(-z))
+sigmoid = function(a) {
+  1/(1+exp(-a))
 }
 
-relu = function(z) {
-  z[which(z<0)] = 0
-  z
+relu = function(a) {
+  a[which(a<0)] = 0
+  a
 }
 
-softmax = function(z) {
-  exp(z)/sum(exp(z))
+softmax = function(a) {
+  exp(a)/sum(exp(a))
 }
 
 # tanh is already defined in R
@@ -67,40 +67,6 @@ d.relu = function(a) {
   z = rep(0,length(a))
   z[ which(z>0) ] = 1
   z
-}
-
-###############
-# Gradients of the activations functions
-###############
-
-avg.grad.linear = function(error=NULL, X.trn=NULL) {
-  
-  # error = output errors
-  # X.trn = training set X values
-  
-  d = d.linear()
-  
-  grad = -matrix(rep(error * d, 2),ncol=2) * X.trn
-  avg.grad = colSums(grad)/dim(grad)[2]
-  avg.grad = matrix(avg.grad, nrow=dim(grad)[2])
-  
-  avg.grad
-}
-
-avg.grad.sigmoid = function() {
-  
-}
-
-avg.grad.relu = function() {
-  
-}
-
-avg.grad.tanh = function() {
-  
-}
-
-avg.grad.softmax = function() {
-  
 }
 
 ###############
@@ -157,26 +123,26 @@ forward.prop = function(NNmod = NULL, X.trn=NULL){
   #         for use in back propagation
   
   layers = names(NNmod$layers)
-  #lout = list()
   
   for(l in 1:length(layers)){
     
-    if( l == 1 ){
-      z = X.trn %*% NNmod$layers[[layers[l]]]$weights
+    if( l == 1 ){ 
+      a = X.trn %*% NNmod$layers[[layers[l]]]$weights
     }else{
-      z = lout[[layers[l-1]]] %*% NNmod$layers[[layers[l]]]$weights
+      a = NNmod$layers[[layers[l-1]]]$z %*% NNmod$layers[[layers[l]]]$weights
+      NNmod$layers[[layers[l]]]$a = a
     }
     
     if( NNmod$layers[[layers[l]]]$activation == 'linear' ){
-      NNmod$layers[[layers[l]]]$a = linear(z)
+      NNmod$layers[[layers[l]]]$z = linear(a)
     }else if( NNmod$layers[[layers[l]]]$activation == 'sigmoid' ){
-      NNmod$layers[[layers[l]]]$a = sigmoid(z)
+      NNmod$layers[[layers[l]]]$z = sigmoid(a)
     }else if( NNmod$layers[[layers[l]]]$activation == 'relu' ){
-      NNmod$layers[[layers[l]]]$a = relu(z)
+      NNmod$layers[[layers[l]]]$z = relu(a)
     }else if( NNmod$layers[[layers[l]]]$activation == 'tanh' ){
-      NNmod$layers[[layers[l]]]$a = tanh(z)
+      NNmod$layers[[layers[l]]]$z = tanh(a)
     }else if( NNmod$layers[[layers[l]]]$activation == 'softmax' ){
-      NNmod$layers[[layers[l]]]$a = softmax(z)
+      NNmod$layers[[layers[l]]]$z = softmax(a)
     }
   }
   
@@ -190,7 +156,7 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL) {
   # X.trn = training set (or minibatch) for this round
   
   # returns a NNModel list with updated weights
-  
+ 
   layers = names(NNmod$layers)
   for( l in length(layers):1 ){
     layer = layers[l]
@@ -208,14 +174,24 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL) {
       d = d.softmax(NULL)
     }
     
+    #compute deltas
     if( l == length(layers) ){  #we're at the output layer
-      delta = Y.trn - NNmod$layers[[layer]]$a
+      delta = Y.trn - NNmod$layers[[layer]]$z
+    }else{
+      delta = d() * NNmod$layers[[layer]]$weights %*% delta
     }
     
+    #compute gradients
     if( l == 1 ) {   #we're at the first layer
       grad = apply(X.trn, 2, function(Xi) { Xi * delta }) 
+    }else{
+      prev.layer = layers[l-1]
+      grad = apply(NNmod$layers[[prev.layer]]$z, 2, function(zi) {
+        zi * delta
+      })
     }
     
+    #adjust weights by average gradient
     avg.grad = matrix(colMeans(grad), nrow = dim(grad)[2])
     NNmod$layers[[layer]]$weights = NNmod$layers[[layer]]$weights + 
       NNmod$learning.rate * avg.grad
