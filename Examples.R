@@ -28,7 +28,7 @@ X.trn = matrix(rnorm(400,0,1), nrow=100)
 nn.fp = forward.prop(nn.trg,X.trn)
 Y.trn = nn.fp$layers$L3$z
 
-nn.trn = train(nn,X.trn,Y.trn, epochs=50, mini.batch.size=5, learning.rate=0.1)
+nn.trn = train(nn,X.trn,Y.trn, epochs=500, mini.batch.size=5, learning.rate=0.001)
 
 # 3 layer, small, linear
 ########################
