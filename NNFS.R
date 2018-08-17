@@ -74,8 +74,7 @@ d.relu = function(a) {
 ###############
 
 NNModel = function( input.dim = NULL, layers = NULL, activations = NULL, 
-                    batch.norm = NULL, drop.out.rate = NULL,
-                    learning.rate = 0.01, seed=20150808) {
+                    batch.norm = NULL, drop.out.rate = NULL, seed=20150808) {
   
   # input.dim = dimensions of input
   # layers = vector of number of nodes per hidden/output layer
@@ -91,7 +90,7 @@ NNModel = function( input.dim = NULL, layers = NULL, activations = NULL,
   #set the random seed to ensure ability to regenerate this network
   set.seed(seed)
   
-  nn = list( layers = list(), learning.rate = learning.rate)
+  nn = list( layers = list())
   
   nn$layers = lapply( 1:(length(layers)), function(l) {
     if( l == 1){
@@ -150,7 +149,7 @@ forward.prop = function(NNmod = NULL, X.trn=NULL){
   NNmod
 }
 
-back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL) {
+back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
   
   # NNModel = list generated from NNModel() function above
   # Y.trn = vector of the actual y-values being modeled
@@ -177,39 +176,41 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL) {
       d = d.softmax(NULL)
     }
     
-    #compute deltas
+    # average the final adjustments
+    # compute deltas
     if( l == length(layers) ){  #we're at the output layer
-      delta = Y.trn - NNmod.old$layers[[layer]]$z
+      delta = lapply( Y.trn - NNmod.old$layers[[layer]]$z, function(m) {m})
     }else{
       next.layer = layers[l+1]
-      delta = delta %*% t(NNmod$layers[[next.layer]]$weights)
+      delta = lapply(delta, function(m) {
+        NNmod.old$layers[[next.layer]]$weights %*% m})
     }
-    
-    #compute gradients
-    wt.dim = dim(NNmod$layers[[layer]]$weights)
-    grad = matrix( rep(0,wt.dim[1]*wt.dim[2]), nrow=wt.dim[1])
+
+    #compute weight adjustments
     if( l == 1 ) {   #we're at the first layer
-      for( i in 1:dim(X.trn)[1] ){
-        grad = grad + t(X.trn[i, , drop=FALSE]) %*% delta[i, , drop=FALSE]
-      }
+      wt.adj = mapply( function(del,x) {
+        del %*% x}, delta, split(X.trn, row(X.trn)),
+        SIMPLIFY=FALSE)
     }else{
       prev.layer = layers[l-1]
-      for( i in 1:dim(X.trn)[1] ){
-        grad = grad + t(NNmod.old$layers[[prev.layer]]$z[i, , drop=FALSE]) %*% delta[i, , drop=FALSE]
-      }
+      wt.adj = mapply( function(del,z) {
+        del %*% z}, delta, split(NNmod.old$layers[[prev.layer]]$z, 
+                                 row(NNmod.old$layers[[prev.layer]]$z)),
+        SIMPLIFY=FALSE)
     }
-    avg.grad = grad / dim(delta)[1]
+    avg.wt.adj = Reduce('+', wt.adj)/length(wt.adj)
     
     #adjust weights by average gradient
-    NNmod$layers[[layer]]$weights = NNmod$layers[[layer]]$weights + 
-      NNmod$learning.rate * avg.grad
+    NNmod$layers[[layer]]$weights = NNmod$layers[[layer]]$weights +
+      learning.rate * t(avg.wt.adj)
+    print(NNmod$layers[[layer]]$weights)
   }
   
   NNmod
 }
 
 train = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, X.tst=NULL, Y.tst=NULL,
-                 mini.batch.size=NULL, epochs=NULL, seed=20180808) {
+                 mini.batch.size=NULL, epochs=NULL, learning.rate=0.1, seed=20180808) {
   
   # NNModel =list generated from NNModel() function above
   # X.trn = the training dataset, organized as observations X covariates (nXm)
@@ -232,11 +233,12 @@ train = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, X.tst=NULL, Y.tst=NULL,
     for( mb in 0:(batches-1) ){
       mb.start = (mini.batch.size*mb+1)
       mb.stop = min((mini.batch.size*(mb+1)), dim(X.trn)[1])
-      mini.batch.X = X.trn[ mini.batch.order[mb.start:mb.stop], ]
-      mini.batch.Y = Y.trn[ mini.batch.order[mb.start:mb.stop], , drop=F]
+      mini.batch.X = X.trn[ mini.batch.order[mb.start:mb.stop], , drop=FALSE]
+      mini.batch.Y = Y.trn[ mini.batch.order[mb.start:mb.stop], , drop=FALSE]
       
       NNmod = forward.prop(NNmod, X.trn=mini.batch.X)
-      NNmod = back.prop(NNmod, X.trn=mini.batch.X, Y.trn=mini.batch.Y)
+      NNmod = back.prop(NNmod, X.trn=mini.batch.X, Y.trn=mini.batch.Y,
+                        learning.rate=learning.rate)
     }
   }
   NNmod
