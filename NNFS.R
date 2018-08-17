@@ -198,12 +198,13 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
                                  row(NNmod.old$layers[[prev.layer]]$z)),
         SIMPLIFY=FALSE)
     }
+    
+    # average gradient used to avoid exploding gradients
     avg.wt.adj = Reduce('+', wt.adj)/length(wt.adj)
     
     #adjust weights by average gradient
     NNmod$layers[[layer]]$weights = NNmod$layers[[layer]]$weights +
       learning.rate * t(avg.wt.adj)
-    print(NNmod$layers[[layer]]$weights)
   }
   
   NNmod
