@@ -8,7 +8,7 @@
 #######################
 
 linear = function(a=NULL) {
-  a
+  1
 }
 
 sigmoid = function(a=NULL) {
@@ -33,7 +33,8 @@ softmax = function(a=NULL) {
 d.linear = function(a=NULL) {
   # a is the matrix of activations and only supplies the dimensions
   # for the ouput
-  1
+  
+  matrix(1, nrow=dim(a)[1], ncol=dim(a)[2])
 }
 
 d.sigmoid = function(a=NULL) {
