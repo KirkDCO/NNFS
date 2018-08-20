@@ -7,20 +7,20 @@
 ## Activation functions
 #######################
 
-linear = function(a) {
+linear = function(a=NULL) {
   a
 }
 
-sigmoid = function(a) {
+sigmoid = function(a=NULL) {
   1/(1+exp(-a))
 }
 
-relu = function(a) {
+relu = function(a=NULL) {
   a[which(a<0)] = 0
   a
 }
 
-softmax = function(a) {
+softmax = function(a=NULL) {
   exp(a)/sum(exp(a))
 }
 
@@ -30,11 +30,13 @@ softmax = function(a) {
 ## Derivatives of activation functions
 ######################################
 
-d.linear = function() {
+d.linear = function(a=NULL) {
+  # a is the matrix of activations and only supplies the dimensions
+  # for the ouput
   1
 }
 
-d.sigmoid = function(a) {
+d.sigmoid = function(a=NULL) {
   # a is the activation of the layer of interest
   # in other words, it is a = sigmoid(z)
   # derivative can be achieved with simple calculation if
@@ -43,7 +45,7 @@ d.sigmoid = function(a) {
   a * (1-a)
 }
 
-d.tahn = function(a) {
+d.tahn = function(a=NULL) {
   # a is the activation of the layer of interest
   # in other words, it is a = tanh(z)
   # derivative can be achieved with simple calculation if
@@ -52,7 +54,7 @@ d.tahn = function(a) {
   1 - a*a
 }
 
-d.softmax = function(a, y) {
+d.softmax = function(a=NULL, y=NULL) {
   # a = the set of activations at the softmax layer
   # y = the target classes as one-hot vector
   # assumed that the loss function is the log loss = -sum(y(i) * log(p(i)))
@@ -61,7 +63,7 @@ d.softmax = function(a, y) {
   a - y 
 }
 
-d.relu = function(a) {
+d.relu = function(a=NULL) {
   # a is the activation of the layer of interest
   
   z = rep(0,length(a))
@@ -179,9 +181,12 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
     # average the final adjustments
     # compute deltas
     if( l == length(layers) ){  #we're at the output layer
-      delta = lapply( Y.trn - NNmod.old$layers[[layer]]$z, function(m) {m})
+      #this is specific to the linear output - need more generic cost function
+      delta = lapply( Y.trn - NNmod.old$layers[[layer]]$z, function(m) {m}) 
     }else{
       next.layer = layers[l+1]
+      #this is specific to linear activations - 
+      #doesn't contain the derivative of the activation function in a generic way
       delta = lapply(delta, function(m) {
         NNmod.old$layers[[next.layer]]$weights %*% m})
     }
@@ -198,8 +203,6 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
                                  row(NNmod.old$layers[[prev.layer]]$z)),
         SIMPLIFY=FALSE)
     }
-    
-    # average gradient used to avoid exploding gradients
     avg.wt.adj = Reduce('+', wt.adj)/length(wt.adj)
     
     #adjust weights by average gradient

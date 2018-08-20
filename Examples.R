@@ -3,7 +3,11 @@
 nn = NNModel(input.dim=3, layers=1, activations='linear')
 X.trn = matrix(rnorm(300,0,1), nrow=100)
 Y.trn = matrix(5 * X.trn[,1] - 7.25 * X.trn[, 2] + 6.83 * X.trn[, 3], nrow=100)
+
 nn.trn = train(nn,X.trn,Y.trn, epochs=10, mini.batch.size=15, learning.rate=0.5)
+
+nn.prd = forward.prop(nn.trn, X.trn)
+Y.trn - nn.prd$layers$L2$z
 
 # 2 layer, linear
 #################
@@ -16,6 +20,9 @@ nn.fp = forward.prop(nn.trg,X.trn)
 Y.trn = nn.fp$layers$L2$z
 
 nn.trn = train(nn,X.trn,Y.trn, epochs=500, mini.batch.size=15, learning.rate=0.01)
+
+nn.prd = forward.prop(nn.trn, X.trn)
+Y.trn - nn.prd$layers$L2$z
 
 # 3 layer, linear
 #################
@@ -30,6 +37,9 @@ Y.trn = nn.fp$layers$L3$z
 
 nn.trn = train(nn,X.trn,Y.trn, epochs=500, mini.batch.size=5, learning.rate=0.001)
 
+nn.prd = forward.prop(nn.trn, X.trn)
+Y.trn - nn.prd$layers$L3$z
+
 # 3 layer, small, linear
 ########################
 nn.trg = NNModel(input.dim=2, layers=c(2,2,1), activations=c('linear','linear','linear'))
@@ -42,4 +52,7 @@ nn.fp = forward.prop(nn.trg,X.trn)
 Y.trn = nn.fp$layers$L3$z
 
 nn.trn = train(nn,X.trn,Y.trn, epochs=1000, mini.batch.size=15, learning.rate=0.001)
+
+nn.prd = forward.prop(nn.trn, X.trn)
+Y.trn - nn.prd$layers$L3$z
 
