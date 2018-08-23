@@ -8,7 +8,7 @@
 #######################
 
 linear = function(a=NULL) {
-  1
+  a
 }
 
 sigmoid = function(a=NULL) {
@@ -168,15 +168,15 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
     
     #get the right derivative function
     if( NNmod.old$layers[[layer]]$activation == 'linear' ){
-      d = d.linear()
+      d = d.linear
     }else if( NNmod.old$layers[[layer]]$activation == 'sigmoid' ){
-      d = d.sigmoid(NULL)
+      d = d.sigmoid
     }else if( NNmod.old$layers[[layer]]$activation == 'relu' ){
-      d = d.relu(NULL)
+      d = d.relu
     }else if(NNmod.old$layers[[layer]]$activation == 'tanh' ){
-      d = d.tanh(NULL)
+      d = d.tanh
     }else if(NNmod.old$layers[[layer]]$activation == 'softmax' ){
-      d = d.softmax(NULL)
+      d = d.softmax
     }
     
     # average the final adjustments
