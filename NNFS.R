@@ -183,13 +183,15 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
     # compute deltas
     if( l == length(layers) ){  #we're at the output layer
       #this is specific to the linear output - need more generic cost function
-      delta = lapply( Y.trn - NNmod.old$layers[[layer]]$z, function(m) {m}) 
+      delta = lapply( Y.trn - NNmod.old$layers[[layer]]$z, function(v) {v}) 
     }else{
       next.layer = layers[l+1]
-      #this is specific to linear activations - 
-      #doesn't contain the derivative of the activation function in a generic way
-      delta = lapply(delta, function(m) {
-        NNmod.old$layers[[next.layer]]$weights %*% m})
+      delta = t(mapply(function(del, a) {
+        wt.del = NNmod.old$layers[[next.layer]]$weights %*% del
+        wt.del * d(as.matrix(a, nrow=dim(wt.del)[1], ncol=dim(wt.del[2])))},
+          delta, split(NNmod.old$layers[[layer]]$a, 
+                       row(NNmod.old$layers[[layer]]$a), drop=FALSE),
+        SIMPLIFY=FALSE))
     }
 
     #compute weight adjustments
@@ -199,8 +201,8 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
         SIMPLIFY=FALSE)
     }else{
       prev.layer = layers[l-1]
-      wt.adj = mapply( function(del,z) {
-        del %*% z}, delta, split(NNmod.old$layers[[prev.layer]]$z, 
+      wt.adj = mapply(function(del, z) {del %*% z}, 
+                      delta, split(NNmod.old$layers[[prev.layer]]$z, 
                                  row(NNmod.old$layers[[prev.layer]]$z)),
         SIMPLIFY=FALSE)
     }
