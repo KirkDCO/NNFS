@@ -74,26 +74,26 @@ d.relu = function(a=NULL) {
 
 
 ################
-# Cost Functions
+# Error Functions
 ################
 
-cost.linear = function(Y=NULL, y.hat=NULL) {
+error.linear = function(Y=NULL, y.hat=NULL) {
   Y - y.hat
 }
 
-cost.sigmoid = function(Y=NULL, y.hat=NULL) {
+error.sigmoid = function(Y=NULL, y.hat=NULL) {
   NULL
 }
 
-cost.relu = function(Y=NULL, y.hat=NULL) {
+error.relu = function(Y=NULL, y.hat=NULL) {
   NULL
 }
 
-cost.tanh = function(Y=NULL, y.hat=NULL) {
+error.tanh = function(Y=NULL, y.hat=NULL) {
   NULL
 }
 
-cost.softmax = function(Y=NULL, y.hat=NULL) {
+error.softmax = function(Y=NULL, y.hat=NULL) {
   NULL
 }
 
@@ -196,25 +196,25 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
     #get the right derivative function
     if( NNmod.old$layers[[layer]]$activation == 'linear' ){
       d = d.linear
-      cost = cost.linear
+      error = error.linear
     }else if( NNmod.old$layers[[layer]]$activation == 'sigmoid' ){
       d = d.sigmoid
-      cost = cost.sigmoid
+      error = error.sigmoid
     }else if( NNmod.old$layers[[layer]]$activation == 'relu' ){
       d = d.relu
-      cost = cost.relu
+      error = error.relu
     }else if(NNmod.old$layers[[layer]]$activation == 'tanh' ){
       d = d.tanh
-      cost = cost.tanh
+      error = error.tanh
     }else if(NNmod.old$layers[[layer]]$activation == 'softmax' ){
       d = d.softmax
-      cost = cost.softmax
+      error = error.softmax
     }
     
     # average the final adjustments
     # compute deltas
     if( l == length(layers) ){  #we're at the output layer
-      delta = lapply( cost(Y.trn, NNmod.old$layers[[layer]]$z), function(v) {v}) 
+      delta = lapply( error(Y.trn, NNmod.old$layers[[layer]]$z), function(v) {v}) 
     }else{
       next.layer = layers[l+1]
       delta = t(mapply(function(del, a) {
