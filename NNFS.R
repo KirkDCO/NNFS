@@ -104,7 +104,8 @@ NNModel = function( input.dim = NULL, layers = NULL, activations = NULL,
                         nrow = layers[l-1] )
     }
     list( activation = activations[l],
-          weights = weights)
+          weights = weights, 
+          bias = matrix(rnorm(layers[l]), ncol=layers[l]))
   })
   
   names(nn$layers) = paste('L', 1:(length(layers)), sep='')
@@ -133,7 +134,7 @@ forward.prop = function(NNmod = NULL, X.trn=NULL){
     }else{
       a = NNmod$layers[[layers[l-1]]]$z %*% NNmod$layers[[layers[l]]]$weights
     }
-    
+    a = a + rep(NNmod$layer[[layers[l]]]$bias, each=nrow(a))
     NNmod$layers[[layers[l]]]$a = a
     
     if( NNmod$layers[[layers[l]]]$activation == 'linear' ){
@@ -208,9 +209,15 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
     }
     avg.wt.adj = Reduce('+', wt.adj)/length(wt.adj)
     
-    #adjust weights by average gradient
+    #compute bias adjustments
+    bias.adj = lapply(delta, function(del) {del})
+    avg.bias.adj = Reduce('+', bias.adj)/length(bias.adj)
+    
+    #adjust weights and biases by average gradient
     NNmod$layers[[layer]]$weights = NNmod$layers[[layer]]$weights +
       learning.rate * t(avg.wt.adj)
+    NNmod$layers[[layer]]$bias = NNmod$layers[[layer]]$bias +
+      learning.rate * t(avg.bias.adj)
   }
   
   NNmod
