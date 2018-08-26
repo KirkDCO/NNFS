@@ -297,4 +297,7 @@ predict = function( NNModel=NULL, X=NULL) {
   # assume input dimensions and order of covariates are consistent with the
   # supplied model
   
+  prd.net = forward.prop(nn.trn, X)
+  output.layer = names(NNModel$layers)[length(names(NNModel$layers))]
+  prd.net$layers[[output.layer]]$z
 }
