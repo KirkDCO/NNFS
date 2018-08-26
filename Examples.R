@@ -110,3 +110,46 @@ nn.trn = train(nn,X.trn,Y.trn, epochs=1000, mini.batch.size=15, learning.rate=0.
 nn.prd = forward.prop(nn.trn, X.trn)
 Y.trn - nn.prd$layers$L3$z
 
+
+# logistic regression
+#####################
+nn = NNModel(input.dim = 1, layers=1, activation='sigmoid')
+X.trn = matrix(c(rnorm(50,mean=2,sd=.5), rnorm(50,mean=4,sd=.5)), nrow=100)
+Y.trn = matrix(c(rep(0,50), rep(1,50)))
+
+nn.trn = train(nn,X.trn,Y.trn, epochs=10000, mini.batch.size=15, learning.rate=0.5)
+
+nn.prd = forward.prop(nn.trn, X.trn)
+Y.trn - nn.prd$layers$L1$z
+
+plot(X.trn, Y.trn)
+x.plt = seq(0,5.5,.05)
+y.plt = forward.prop(nn.trn, x.plt)$layers$L1$z
+points(x.plt, y.plt, pch=19)
+
+# 3 layer, logistic
+###################
+library(MASS) #for mvrnorm
+nn = NNModel(input.dim=2, layers=c(7,7,1), activations=c('sigmoid','sigmoid','sigmoid'))
+X.trn = rbind( mvrnorm(50, mu=c(2,4), Sigma = diag(1,nrow=2,ncol=2)),
+               mvrnorm(50, mu=c(4,2), Sigma = diag(1,nrow=2,ncol=2)))
+Y.trn = matrix( c(rep(0,50), rep(1,50)) )
+
+plot(X.trn[,1], X.trn[,2], col=c('red','blue')[Y.trn+1],
+     pch=19)
+
+nn.trn = train(nn,X.trn,Y.trn, epochs=1000, mini.batch.size=5, learning.rate=0.0001)
+
+nn.prd = forward.prop(nn.trn, X.trn)
+Y.trn - nn.prd$layers$L3$z
+
+#plotted boundary always looks linear
+cut.point = mean(nn.prd$layers$L3$z)
+for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=100) ) {
+  for( x2 in seq(from=min(X.trn[,2]), to=max(X.trn[,2]), length.out=100) ){
+    prd = forward.prop(nn.trn, matrix(c(x1,x2), nrow=1))$layers$L3$z
+    clr = c('red', 'blue')[ (prd<cut.point)+1 ]
+    points(x1,x2,pch=19,cex=.25,col=clr)
+  }
+}
+

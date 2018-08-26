@@ -82,7 +82,7 @@ error.linear = function(Y=NULL, y.hat=NULL) {
 }
 
 error.sigmoid = function(Y=NULL, y.hat=NULL) {
-  NULL
+  Y - y.hat
 }
 
 error.relu = function(Y=NULL, y.hat=NULL) {
