@@ -30,46 +30,46 @@ softmax = function(a=NULL) {
 ## Derivatives of activation functions
 ######################################
 
-d.linear = function(a=NULL) {
-  # a is the matrix of activations and only supplies the dimensions
+d.linear = function(z=NULL) {
+  # z is the matrix of activations and only supplies the dimensions
   # for the ouput
   
-  matrix(1, nrow=dim(a)[1], ncol=dim(a)[2])
+  matrix(1, nrow=dim(z)[1], ncol=dim(z)[2])
 }
 
-d.sigmoid = function(a=NULL) {
-  # a is the activation of the layer of interest
-  # in other words, it is a = sigmoid(z)
+d.sigmoid = function(z=NULL) {
+  # z is the activation of the layer of interest
+  # in other words, it is z = sigmoid(a)
   # derivative can be achieved with simple calculation if
   # the original activations are cached
   
-  a * (1-a)
+  z * (1-z)
 }
 
-d.tahn = function(a=NULL) {
-  # a is the activation of the layer of interest
-  # in other words, it is a = tanh(z)
+d.tahn = function(z=NULL) {
+  # z is the activation of the layer of interest
+  # in other words, it is z = tanh(z)
   # derivative can be achieved with simple calculation if
   # the original activations are cached
   
-  1 - a*a
+  1 - z*z
 }
 
-d.softmax = function(a=NULL, y=NULL) {
-  # a = the set of activations at the softmax layer
+d.softmax = function(z=NULL, y=NULL) {
+  # z = the set of activations at the softmax layer
   # y = the target classes as one-hot vector
   # assumed that the loss function is the log loss = -sum(y(i) * log(p(i)))
   # with p(i) = softmax(z)
   
-  a - y 
+  z - y 
 }
 
-d.relu = function(a=NULL) {
-  # a is the activation of the layer of interest
+d.relu = function(z=NULL) {
+  # z is the activation of the layer of interest
   
-  z = rep(0,length(a))
-  z[ which(z>0) ] = 1
-  z
+  z.ret = rep(0,length(z))
+  z.ret[ which(z>0) ] = 1
+  z.ret
 }
 
 
@@ -77,23 +77,23 @@ d.relu = function(a=NULL) {
 # Error Functions
 ################
 
-error.linear = function(Y=NULL, y.hat=NULL) {
-  Y - y.hat
+error.linear = function(Y=NULL, Y.hat=NULL) {
+  Y - Y.hat
 }
 
-error.sigmoid = function(Y=NULL, y.hat=NULL) {
-  Y - y.hat
+error.sigmoid = function(Y=NULL, Y.hat=NULL) {
+  Y - Y.hat
 }
 
-error.relu = function(Y=NULL, y.hat=NULL) {
+error.relu = function(Y=NULL, Y.hat=NULL) {
+  Y - Y.hat
+}
+
+error.tanh = function(Y=NULL, Y.hat=NULL) {
   NULL
 }
 
-error.tanh = function(Y=NULL, y.hat=NULL) {
-  NULL
-}
-
-error.softmax = function(Y=NULL, y.hat=NULL) {
+error.softmax = function(Y=NULL, Y.hat=NULL) {
   NULL
 }
 
@@ -217,11 +217,11 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
       delta = lapply( error(Y.trn, NNmod.old$layers[[layer]]$z), function(v) {v}) 
     }else{
       next.layer = layers[l+1]
-      delta = t(mapply(function(del, a) {
+      delta = t(mapply(function(del, z) {
         wt.del = NNmod.old$layers[[next.layer]]$weights %*% del
-        wt.del * d(as.matrix(a, nrow=dim(wt.del)[1], ncol=dim(wt.del[2])))},
-          delta, split(NNmod.old$layers[[layer]]$a, 
-                       row(NNmod.old$layers[[layer]]$a), drop=FALSE),
+        wt.del * d(as.matrix(z, nrow=dim(wt.del)[1], ncol=dim(wt.del[2])))},
+          delta, split(NNmod.old$layers[[layer]]$z, 
+                       row(NNmod.old$layers[[layer]]$z), drop=FALSE),
         SIMPLIFY=FALSE))
     }
 

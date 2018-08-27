@@ -6,9 +6,11 @@ Y.trn = matrix(5 * X.trn[,1] - 7.25 * X.trn[, 2] + 6.83 * X.trn[, 3], nrow=100)
 
 nn.trn = train(nn,X.trn,Y.trn, epochs=10, mini.batch.size=15, learning.rate=0.5)
 
-nn.prd = forward.prop(nn.trn, X.trn)
-Y.trn - nn.prd$layers$L1$z
+nn.prd = predict(nn.trn, X.trn)
+Y.trn - nn.prd
 
+plot(Y.trn, nn.prd)
+abline(0,1)
 
 # Linear regression, single layer with bias
 ###########################################
@@ -18,9 +20,11 @@ Y.trn = matrix(5 * X.trn[,1] - 7.25 * X.trn[, 2] + 6.83 * X.trn[, 3] + 3.14159, 
 
 nn.trn = train(nn,X.trn,Y.trn, epochs=10, mini.batch.size=15, learning.rate=0.5)
 
-nn.prd = forward.prop(nn.trn, X.trn)
-Y.trn - nn.prd$layers$L1$z
+nn.prd = predict(nn.trn, X.trn)
+Y.trn - nn.prd
 
+plot(Y.trn, nn.prd)
+abline(0,1)
 
 # 2 layer, linear
 #################
@@ -34,9 +38,11 @@ Y.trn = nn.fp$layers$L2$z
 
 nn.trn = train(nn,X.trn,Y.trn, epochs=500, mini.batch.size=15, learning.rate=0.01)
 
-nn.prd = forward.prop(nn.trn, X.trn)
-Y.trn - nn.prd$layers$L2$z
+nn.prd = predict(nn.trn, X.trn)
+Y.trn - nn.prd
 
+plot(Y.trn, nn.prd)
+abline(0,1)
 
 # 2 layer, linear, with bias
 ############################
@@ -52,10 +58,11 @@ Y.trn = nn.fp$layers$L2$z
 
 nn.trn = train(nn,X.trn,Y.trn, epochs=500, mini.batch.size=15, learning.rate=0.01)
 
-nn.prd = forward.prop(nn.trn, X.trn)
-Y.trn - nn.prd$layers$L2$z
+nn.prd = predict(nn.trn, X.trn)
+Y.trn - nn.prd
 
-
+plot(Y.trn, nn.prd)
+abline(0,1)
 
 # 3 layer, linear
 #################
@@ -70,8 +77,11 @@ Y.trn = nn.fp$layers$L3$z
 
 nn.trn = train(nn,X.trn,Y.trn, epochs=500, mini.batch.size=5, learning.rate=0.001)
 
-nn.prd = forward.prop(nn.trn, X.trn)
-Y.trn - nn.prd$layers$L3$z
+nn.prd = predict(nn.trn, X.trn)
+Y.trn - nn.prd
+
+plot(Y.trn, nn.prd)
+abline(0,1)
 
 # 3 layer, linear with bias
 #################
@@ -89,8 +99,11 @@ Y.trn = nn.fp$layers$L3$z
 
 nn.trn = train(nn,X.trn,Y.trn, epochs=500, mini.batch.size=5, learning.rate=0.001)
 
-nn.prd = forward.prop(nn.trn, X.trn)
-Y.trn - nn.prd$layers$L3$z
+nn.prd = predict(nn.trn, X.trn)
+Y.trn - nn.prd
+
+plot(Y.trn, nn.prd)
+abline(0,1)
 
 
 
@@ -107,8 +120,11 @@ Y.trn = nn.fp$layers$L3$z
 
 nn.trn = train(nn,X.trn,Y.trn, epochs=1000, mini.batch.size=15, learning.rate=0.001)
 
-nn.prd = forward.prop(nn.trn, X.trn)
-Y.trn - nn.prd$layers$L3$z
+nn.prd = predict(nn.trn, X.trn)
+Y.trn - nn.prd
+
+plot(Y.trn, nn.prd)
+abline(0,1)
 
 
 # logistic regression
@@ -117,15 +133,42 @@ nn = NNModel(input.dim = 1, layers=1, activation='sigmoid')
 X.trn = matrix(c(rnorm(50,mean=2,sd=.5), rnorm(50,mean=4,sd=.5)), nrow=100)
 Y.trn = matrix(c(rep(0,50), rep(1,50)))
 
-nn.trn = train(nn,X.trn,Y.trn, epochs=10000, mini.batch.size=15, learning.rate=0.5)
+nn.trn = train(nn,X.trn,Y.trn, epochs=1000, mini.batch.size=15, learning.rate=0.5)
 
-nn.prd = forward.prop(nn.trn, X.trn)
-Y.trn - nn.prd$layers$L1$z
+nn.prd = predict(nn.trn, X.trn)
+Y.trn - nn.prd
 
 plot(X.trn, Y.trn)
 x.plt = seq(0,5.5,.05)
-y.plt = forward.prop(nn.trn, x.plt)$layers$L1$z
+y.plt = predict(nn.trn, x.plt)
 points(x.plt, y.plt, pch=19)
+
+# 2 layer, logistic
+#########################################
+
+library(MASS) #for mvrnorm
+nn = NNModel(input.dim=2, layers=c(7,1), activations=c('sigmoid','sigmoid'))
+X.trn = rbind( mvrnorm(50, mu=c(1,2), Sigma = diag(1,nrow=2,ncol=2)),
+               mvrnorm(50, mu=c(3,4), Sigma = diag(1,nrow=2,ncol=2)))
+Y.trn = matrix( c(rep(0,50), rep(1,50)) )
+
+nn.trn = train(nn,X.trn,Y.trn, epochs=2500, mini.batch.size=5, learning.rate=0.1)
+
+nn.prd = predict(nn.trn, X.trn)
+Y.trn - nn.prd
+
+#plot classes and decision boundary
+plot(X.trn[,1], X.trn[,2], col=c('red','blue')[Y.trn+1],
+     pch=19)
+cut.point = 0.5
+for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=50) ) {
+  for( x2 in seq(from=min(X.trn[,2]), to=max(X.trn[,2]), length.out=50) ){
+    prd = predict(nn.trn, matrix(c(x1,x2), nrow=1))
+    clr = c('red', 'blue')[ (prd>cut.point)+1 ]
+    points(x1,x2,pch=19,cex=.15,col=clr)
+  }
+}
+
 
 # 3 layer, logistic
 # decision boundary is always linear
@@ -134,20 +177,62 @@ points(x.plt, y.plt, pch=19)
 
 library(MASS) #for mvrnorm
 nn = NNModel(input.dim=2, layers=c(7,7,1), activations=c('sigmoid','sigmoid','sigmoid'))
-X.trn = rbind( mvrnorm(50, mu=c(2,4), Sigma = diag(1,nrow=2,ncol=2)),
-               mvrnorm(50, mu=c(4,2), Sigma = diag(1,nrow=2,ncol=2)))
+X.trn = rbind( mvrnorm(50, mu=c(1,2), Sigma = diag(1,nrow=2,ncol=2)),
+               mvrnorm(50, mu=c(3,4), Sigma = diag(1,nrow=2,ncol=2)))
 Y.trn = matrix( c(rep(0,50), rep(1,50)) )
 
-plot(X.trn[,1], X.trn[,2], col=c('red','blue')[Y.trn+1],
-     pch=19)
-
-nn.trn = train(nn,X.trn,Y.trn, epochs=1000, mini.batch.size=5, learning.rate=0.0001)
+nn.trn = train(nn,X.trn,Y.trn, epochs=10000, mini.batch.size=5, learning.rate=0.1)
 
 nn.prd = predict(nn.trn, X.trn)
 Y.trn - nn.prd
 
-#plotted boundary always looks linear
-cut.point = mean(nn.prd)
+#plot classes and decision boundary
+plot(X.trn[,1], X.trn[,2], col=c('red','blue')[Y.trn+1],
+     pch=19)
+cut.point = 0.5
+for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
+  for( x2 in seq(from=min(X.trn[,2]), to=max(X.trn[,2]), length.out=200) ){
+    prd = predict(nn.trn, matrix(c(x1,x2), nrow=1))
+    clr = c('red', 'blue')[ (prd>cut.point)+1 ]
+    points(x1,x2,pch=19,cex=.15,col=clr)
+  }
+}
+
+
+# 2-layer relu classification
+###############################
+nn = NNModel(input.dim = 1, layers=c(5,1), activation=c('relu','relu'))
+X.trn = matrix(c(rnorm(50,mean=2,sd=.5), rnorm(50,mean=4,sd=.5)), nrow=100)
+Y.trn = matrix(c(rep(0,50), rep(1,50)))
+
+nn.trn = train(nn,X.trn,Y.trn, epochs=2500, mini.batch.size=15, learning.rate=0.01)
+
+nn.prd = predict(nn.trn, X.trn)
+Y.trn - nn.prd
+
+plot(X.trn, Y.trn)
+x.plt = seq(0,5.5,.05)
+y.plt = predict(nn.trn, x.plt)
+points(x.plt, y.plt, pch=19)
+
+# 3 layer, relu with sigmoid out
+#########################################
+
+library(MASS) #for mvrnorm
+nn = NNModel(input.dim=2, layers=c(7,7,1), activations=c('relu','relu','sigmoid'))
+X.trn = rbind( mvrnorm(50, mu=c(2,4), Sigma = diag(1,nrow=2,ncol=2)),
+               mvrnorm(50, mu=c(4,2), Sigma = diag(1,nrow=2,ncol=2)))
+Y.trn = matrix( c(rep(0,50), rep(1,50)) )
+
+nn.trn = train(nn,X.trn,Y.trn, epochs=1000, mini.batch.size=5, learning.rate=0.5)
+
+nn.prd = predict(nn.trn, X.trn)
+Y.trn - nn.prd
+
+#plot clsses and decision boundary
+plot(X.trn[,1], X.trn[,2], col=c('red','blue')[Y.trn+1],
+     pch=19)
+cut.point = .5
 for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=100) ) {
   for( x2 in seq(from=min(X.trn[,2]), to=max(X.trn[,2]), length.out=100) ){
     prd = predict(nn.trn, matrix(c(x1,x2), nrow=1))
@@ -155,4 +240,3 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=100) ) {
     points(x1,x2,pch=19,cex=.25,col=clr)
   }
 }
-
