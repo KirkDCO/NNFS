@@ -46,7 +46,7 @@ d.sigmoid = function(z=NULL) {
   z * (1-z)
 }
 
-d.tahn = function(z=NULL) {
+d.tanh = function(z=NULL) {
   # z is the activation of the layer of interest
   # in other words, it is z = tanh(z)
   # derivative can be achieved with simple calculation if
@@ -90,7 +90,7 @@ error.relu = function(Y=NULL, Y.hat=NULL) {
 }
 
 error.tanh = function(Y=NULL, Y.hat=NULL) {
-  NULL
+  Y - Y.hat
 }
 
 error.softmax = function(Y=NULL, Y.hat=NULL) {

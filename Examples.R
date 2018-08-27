@@ -240,3 +240,30 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=100) ) {
     points(x1,x2,pch=19,cex=.25,col=clr)
   }
 }
+
+# 2-layer tanh classification
+###############################
+library(MASS)
+nn = NNModel(input.dim = 2, layers=c(5,1), activation=c('tanh','tanh'))
+X.trn = rbind( mvrnorm(50, mu=c(1,2), Sigma = diag(1,nrow=2,ncol=2)),
+               mvrnorm(50, mu=c(3,4), Sigma = diag(1,nrow=2,ncol=2)))
+Y.trn = matrix( c(rep(-1,50), rep(1,50)) )
+
+nn.trn = train(nn,X.trn,Y.trn, epochs=2000, mini.batch.size=15, learning.rate=0.01)
+
+nn.prd = predict(nn.trn, X.trn)
+Y.trn - nn.prd
+
+#plot classes and decision boundary
+plot(X.trn[,1], X.trn[,2], col=c(rep('red',50),rep('blue',50)),
+     pch=19)
+cut.point = 0
+for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
+  for( x2 in seq(from=min(X.trn[,2]), to=max(X.trn[,2]), length.out=200) ){
+    prd = predict(nn.trn, matrix(c(x1,x2), nrow=1))
+    clr = c('red', 'blue')[ (prd>cut.point)+1 ]
+    points(x1,x2,pch=19,cex=.15,col=clr)
+  }
+}
+
+
