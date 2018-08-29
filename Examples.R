@@ -171,8 +171,6 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=50) ) {
 
 
 # 3 layer, logistic
-# decision boundary is always linear
-# suspect vanishing gradients
 #########################################
 
 library(MASS) #for mvrnorm
@@ -266,4 +264,28 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
   }
 }
 
+# 3 layer, logistic
+#########################################
 
+library(MASS) #for mvrnorm
+nn = NNModel(input.dim=2, layers=c(7,7,1), activations=c('sigmoid','sigmoid','sigmoid'))
+X.trn = rbind( mvrnorm(200, mu=c(1,2), Sigma = diag(1,nrow=2,ncol=2)),
+               mvrnorm(200, mu=c(1.5,2.5), Sigma = diag(5,nrow=2,ncol=2)))
+Y.trn = matrix( c(rep(0,200), rep(1,200)) )
+
+nn.trn = train(nn,X.trn,Y.trn, epochs=10000, mini.batch.size=5, learning.rate=0.1)
+
+nn.prd = predict(nn.trn, X.trn)
+Y.trn - nn.prd
+
+#plot classes and decision boundary
+plot(X.trn[,1], X.trn[,2], col=c('red','blue')[Y.trn+1],
+     pch=19)
+cut.point = 0.5
+for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
+  for( x2 in seq(from=min(X.trn[,2]), to=max(X.trn[,2]), length.out=200) ){
+    prd = predict(nn.trn, matrix(c(x1,x2), nrow=1))
+    clr = c('red', 'blue')[ (prd>cut.point)+1 ]
+    points(x1,x2,pch=19,cex=.15,col=clr)
+  }
+}
