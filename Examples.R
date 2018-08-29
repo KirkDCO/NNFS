@@ -269,11 +269,11 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
 
 library(MASS) #for mvrnorm
 nn = NNModel(input.dim=2, layers=c(7,7,1), activations=c('sigmoid','sigmoid','sigmoid'))
-X.trn = rbind( mvrnorm(200, mu=c(1,2), Sigma = diag(1,nrow=2,ncol=2)),
-               mvrnorm(200, mu=c(1.5,2.5), Sigma = diag(5,nrow=2,ncol=2)))
-Y.trn = matrix( c(rep(0,200), rep(1,200)) )
+X.trn = rbind( mvrnorm(50, mu=c(1,2), Sigma = diag(1,nrow=2,ncol=2)),
+               mvrnorm(50, mu=c(1.5,2.5), Sigma = diag(5,nrow=2,ncol=2)))
+Y.trn = matrix( c(rep(0,50), rep(1,50)) )
 
-nn.trn = train(nn,X.trn,Y.trn, epochs=10000, mini.batch.size=5, learning.rate=0.1)
+nn.trn = train(nn,X.trn,Y.trn, epochs=2500, mini.batch.size=5, learning.rate=0.1)
 
 nn.prd = predict(nn.trn, X.trn)
 Y.trn - nn.prd
