@@ -317,3 +317,28 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
 }
 
 
+# 3-layer sigmoid classification, contained clusters
+###############################
+library(MASS)
+nn = NNModel(input.dim = 2, layers=c(5,5,1), activation=c('sigmoid','sigmoid','sigmoid'))
+X.trn = rbind( mvrnorm(75, mu=c(2,2), Sigma = diag(.25,nrow=2,ncol=2)),
+               mvrnorm(75, mu=c(4,4), Sigma = diag(.25,nrow=2,ncol=2)),
+               mvrnorm(150, mu=c(3,3), Sigma = diag(5,nrow=2,ncol=2)))
+Y.trn = matrix( c(rep(0,150), rep(1,150)) )
+
+nn.trn = train(nn,X.trn,Y.trn, epochs=25000, mini.batch.size=15, learning.rate=0.1)
+
+nn.prd = predict(nn.trn, X.trn)
+Y.trn - nn.prd
+
+#plot classes and decision boundary
+plot(X.trn[,1], X.trn[,2], col=c(rep('red',150),rep('blue',150)),
+     pch=19)
+cut.point = 0.5
+for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
+  for( x2 in seq(from=min(X.trn[,2]), to=max(X.trn[,2]), length.out=200) ){
+    prd = predict(nn.trn, matrix(c(x1,x2), nrow=1))
+    clr = c('red', 'blue')[ (prd>cut.point)+1 ]
+    points(x1,x2,pch=19,cex=.15,col=clr)
+  }
+}
