@@ -347,14 +347,14 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
 # 3-layer sigmoid classification, 3 contained clusters
 ######################################################
 library(MASS)
-nn = NNModel(input.dim = 2, layers=c(5,5,1), activation=c('sigmoid','sigmoid','sigmoid'))
+nn = NNModel(input.dim = 2, layers=c(5,5,5,1), activation=c('sigmoid','sigmoid','sigmoid','sigmoid'))
 X.trn = rbind( mvrnorm(75, mu=c(2,0), Sigma = diag(.25,nrow=2,ncol=2)),
                mvrnorm(75, mu=c(4,4), Sigma = diag(.25,nrow=2,ncol=2)),
                mvrnorm(75, mu=c(2,6), Sigma = diag(.25,nrow=2,ncol=2)),
                mvrnorm(200, mu=c(3,3), Sigma = diag(5,nrow=2,ncol=2)))
 Y.trn = matrix( c(rep(0,225), rep(1,200)) )
 
-nn.trn = train(nn,X.trn,Y.trn, epochs=25000, mini.batch.size=15, learning.rate=0.1)
+nn.trn = train(nn,X.trn,Y.trn, epochs=50000, mini.batch.size=15, learning.rate=0.1)
 
 nn.prd = predict(nn.trn, X.trn)
 Y.trn - nn.prd
