@@ -349,7 +349,7 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
 library(MASS)
 nn = NNModel(input.dim = 2, layers=c(5,5,5,1), activation=c('sigmoid','sigmoid','sigmoid','sigmoid'))
 X.trn = rbind( mvrnorm(75, mu=c(2,0), Sigma = diag(.25,nrow=2,ncol=2)),
-               mvrnorm(75, mu=c(4,4), Sigma = diag(.25,nrow=2,ncol=2)),
+               mvrnorm(75, mu=c(6,4), Sigma = diag(.25,nrow=2,ncol=2)),
                mvrnorm(75, mu=c(2,6), Sigma = diag(.25,nrow=2,ncol=2)),
                mvrnorm(200, mu=c(3,3), Sigma = diag(5,nrow=2,ncol=2)))
 Y.trn = matrix( c(rep(0,225), rep(1,200)) )
