@@ -84,7 +84,7 @@ plot(Y.trn, nn.prd)
 abline(0,1)
 
 # 3 layer, linear with bias
-#################
+###########################
 nn.trg = NNModel(input.dim=4, layers=c(3,2,1), activations=c('linear','linear','linear'))
 nn = nn.trg
 nn.trg$layers$L1$weights = matrix(c(rep(1,4),rep(2,4),rep(3,4)), nrow=4)
@@ -144,7 +144,7 @@ y.plt = predict(nn.trn, x.plt)
 points(x.plt, y.plt, pch=19)
 
 # 2 layer, logistic
-#########################################
+###################
 
 library(MASS) #for mvrnorm
 nn = NNModel(input.dim=2, layers=c(7,1), activations=c('sigmoid','sigmoid'))
@@ -171,7 +171,7 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=50) ) {
 
 
 # 3 layer, logistic
-#########################################
+###################
 
 library(MASS) #for mvrnorm
 nn = NNModel(input.dim=2, layers=c(7,7,1), activations=c('sigmoid','sigmoid','sigmoid'))
@@ -198,7 +198,7 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
 
 
 # 2-layer relu classification
-###############################
+#############################
 nn = NNModel(input.dim = 1, layers=c(5,1), activation=c('relu','relu'))
 X.trn = matrix(c(rnorm(50,mean=2,sd=.5), rnorm(50,mean=4,sd=.5)), nrow=100)
 Y.trn = matrix(c(rep(0,50), rep(1,50)))
@@ -214,7 +214,7 @@ y.plt = predict(nn.trn, x.plt)
 points(x.plt, y.plt, pch=19)
 
 # 3 layer, relu with sigmoid out
-#########################################
+################################
 
 library(MASS) #for mvrnorm
 nn = NNModel(input.dim=2, layers=c(7,7,1), activations=c('relu','relu','sigmoid'))
@@ -240,7 +240,7 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=100) ) {
 }
 
 # 2-layer tanh classification
-###############################
+#############################
 library(MASS)
 nn = NNModel(input.dim = 2, layers=c(5,1), activation=c('tanh','tanh'))
 X.trn = rbind( mvrnorm(50, mu=c(1,2), Sigma = diag(1,nrow=2,ncol=2)),
@@ -265,7 +265,7 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
 }
 
 # 3 layer, logistic
-#########################################
+###################
 
 library(MASS) #for mvrnorm
 nn = NNModel(input.dim=2, layers=c(7,7,1), activations=c('sigmoid','sigmoid','sigmoid'))
@@ -291,7 +291,7 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
 }
 
 # 3-layer tanh classification, clusters
-###############################
+#######################################
 library(MASS)
 nn = NNModel(input.dim = 2, layers=c(5,1), activation=c('tanh','tanh'))
 X.trn = rbind( mvrnorm(75, mu=c(1,2), Sigma = diag(.25,nrow=2,ncol=2)),
@@ -318,7 +318,7 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
 
 
 # 3-layer sigmoid classification, contained clusters
-###############################
+####################################################
 library(MASS)
 nn = NNModel(input.dim = 2, layers=c(5,5,1), activation=c('sigmoid','sigmoid','sigmoid'))
 X.trn = rbind( mvrnorm(75, mu=c(2,2), Sigma = diag(.25,nrow=2,ncol=2)),
@@ -333,6 +333,34 @@ Y.trn - nn.prd
 
 #plot classes and decision boundary
 plot(X.trn[,1], X.trn[,2], col=c(rep('red',150),rep('blue',150)),
+     pch=19)
+cut.point = 0.5
+for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
+  for( x2 in seq(from=min(X.trn[,2]), to=max(X.trn[,2]), length.out=200) ){
+    prd = predict(nn.trn, matrix(c(x1,x2), nrow=1))
+    clr = c('red', 'blue')[ (prd>cut.point)+1 ]
+    points(x1,x2,pch=19,cex=.15,col=clr)
+  }
+}
+
+
+# 3-layer sigmoid classification, 3 contained clusters
+######################################################
+library(MASS)
+nn = NNModel(input.dim = 2, layers=c(5,5,1), activation=c('sigmoid','sigmoid','sigmoid'))
+X.trn = rbind( mvrnorm(75, mu=c(2,0), Sigma = diag(.25,nrow=2,ncol=2)),
+               mvrnorm(75, mu=c(4,4), Sigma = diag(.25,nrow=2,ncol=2)),
+               mvrnorm(75, mu=c(2,6), Sigma = diag(.25,nrow=2,ncol=2)),
+               mvrnorm(200, mu=c(3,3), Sigma = diag(5,nrow=2,ncol=2)))
+Y.trn = matrix( c(rep(0,225), rep(1,200)) )
+
+nn.trn = train(nn,X.trn,Y.trn, epochs=25000, mini.batch.size=15, learning.rate=0.1)
+
+nn.prd = predict(nn.trn, X.trn)
+Y.trn - nn.prd
+
+#plot classes and decision boundary
+plot(X.trn[,1], X.trn[,2], col=c(rep('red',225),rep('blue',200)),
      pch=19)
 cut.point = 0.5
 for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
