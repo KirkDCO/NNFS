@@ -15,8 +15,13 @@ sigmoid = function(a=NULL) {
   1/(1+exp(-a))
 }
 
-relu = function(a=NULL) {
+leaky.relu = function(a=NULL) {
   a[which(a<0)] = .1 *a[which(a<0)]
+  a
+}
+
+relu = function(a=NULL) {
+  a[qhich(a<0)] = 0
   a
 }
 
@@ -64,10 +69,18 @@ d.softmax = function(z=NULL, y=NULL) {
   z - y 
 }
 
-d.relu = function(z=NULL) {
+d.leaky.relu = function(z=NULL) {
   # z is the activation of the layer of interest
   
   z.ret = rep(.1,length(z))
+  z.ret[ which(z>0) ] = 1
+  z.ret
+}
+
+d.relu = function(z=NULL) {
+  # z is the activation of the layer of interest
+  
+  z.ret = rep(0,length(z))
   z.ret[ which(z>0) ] = 1
   z.ret
 }
@@ -86,6 +99,10 @@ error.sigmoid = function(Y=NULL, Y.hat=NULL) {
 }
 
 error.relu = function(Y=NULL, Y.hat=NULL) {
+  Y - Y.hat
+}
+
+error.leaky.relu = function(Y=NULL, Y.hat=NULL) {
   Y - Y.hat
 }
 
@@ -108,7 +125,7 @@ NNModel = function( input.dim = NULL, layers = NULL, activations = NULL,
   # input.dim = dimensions of input
   # layers = vector of number of nodes per hidden/output layer
   # activations = vector of activations types per layer
-  #               can be linear, tanh, sigmoid, relu, and softmax
+  #               can be linear, tanh, sigmoid, relu, leaky.relu, and softmax
   #               softmax is assumed to be the last layer for multicategory output
   # batch.nrom = vector of TRUE/FALSE designating whether batch norm is performed for each layer
   # drop.out.rate = vector of values for drop-out rate per layer
@@ -169,6 +186,8 @@ forward.prop = function(NNmod = NULL, X.trn=NULL){
       NNmod$layers[[layers[l]]]$z = sigmoid(a)
     }else if( NNmod$layers[[layers[l]]]$activation == 'relu' ){
       NNmod$layers[[layers[l]]]$z = relu(a)
+    }else if( NNmod$layers[[layers[l]]]$activation == 'leaky.relu' ){
+      NNmod$layers[[layers[l]]]$z = leaky.relu(a)
     }else if( NNmod$layers[[layers[l]]]$activation == 'tanh' ){
       NNmod$layers[[layers[l]]]$z = tanh(a)
     }else if( NNmod$layers[[layers[l]]]$activation == 'softmax' ){
@@ -203,6 +222,9 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
     }else if( NNmod.old$layers[[layer]]$activation == 'relu' ){
       d = d.relu
       error = error.relu
+    }else if( NNmod.old$layers[[layer]]$activation == 'leaky.relu' ){
+      d = d.leaky.relu
+      error = error.leaky.relu
     }else if(NNmod.old$layers[[layer]]$activation == 'tanh' ){
       d = d.tanh
       error = error.tanh

@@ -197,9 +197,9 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
 }
 
 
-# 2-layer relu classification
+# 2-layer leaky relu classification
 #############################
-nn = NNModel(input.dim = 1, layers=c(5,1), activation=c('relu','relu'))
+nn = NNModel(input.dim = 1, layers=c(5,1), activation=c('leaky.relu','leaky.relu'))
 X.trn = matrix(c(rnorm(50,mean=2,sd=.5), rnorm(50,mean=4,sd=.5)), nrow=100)
 Y.trn = matrix(c(rep(0,50), rep(1,50)))
 
@@ -374,7 +374,7 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
 # 3-layer leaky relu classification, clusters
 #############################################
 library(MASS)
-nn = NNModel(input.dim = 2, layers=c(2,1), activation=c('relu','sigmoid'))
+nn = NNModel(input.dim = 2, layers=c(3,1), activation=c('leaky.relu','sigmoid'))
 X.trn = rbind( mvrnorm(75, mu=c(1,2), Sigma = diag(.25,nrow=2,ncol=2)),
                mvrnorm(75, mu=c(3,4), Sigma = diag(.25,nrow=2,ncol=2)),
                mvrnorm(100, mu=c(2,3), Sigma = diag(5,nrow=2,ncol=2)))
