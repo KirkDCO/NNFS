@@ -16,7 +16,7 @@ sigmoid = function(a=NULL) {
 }
 
 relu = function(a=NULL) {
-  a[which(a<0)] = 0
+  a[which(a<0)] = .1 *a[which(a<0)]
   a
 }
 
@@ -67,7 +67,7 @@ d.softmax = function(z=NULL, y=NULL) {
 d.relu = function(z=NULL) {
   # z is the activation of the layer of interest
   
-  z.ret = rep(0,length(z))
+  z.ret = rep(.1,length(z))
   z.ret[ which(z>0) ] = 1
   z.ret
 }
