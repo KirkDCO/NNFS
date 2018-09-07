@@ -377,8 +377,8 @@ library(MASS)
 nn = NNModel(input.dim = 2, layers=c(3,1), activation=c('leaky.relu','sigmoid'))
 X.trn = rbind( mvrnorm(75, mu=c(1,2), Sigma = diag(.25,nrow=2,ncol=2)),
                mvrnorm(75, mu=c(3,4), Sigma = diag(.25,nrow=2,ncol=2)),
-               mvrnorm(100, mu=c(2,3), Sigma = diag(5,nrow=2,ncol=2)))
-Y.trn = matrix( c(rep(0,150), rep(1,100)) )
+               mvrnorm(150, mu=c(2,3), Sigma = diag(5,nrow=2,ncol=2)))
+Y.trn = matrix( c(rep(0,150), rep(1,150)) )
 
 nn.trn = train(nn,X.trn,Y.trn, epochs=10000, mini.batch.size=15, learning.rate=0.05)
 
@@ -386,7 +386,7 @@ nn.prd = predict(nn.trn, X.trn)
 Y.trn - nn.prd
 
 #plot classes and decision boundary
-plot(X.trn[,1], X.trn[,2], col=c(rep('red',150),rep('blue',100)),
+plot(X.trn[,1], X.trn[,2], col=c(rep('red',150),rep('blue',150)),
      pch=19)
 cut.point = .5
 for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
