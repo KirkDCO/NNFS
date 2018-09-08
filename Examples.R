@@ -197,13 +197,13 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
 }
 
 
-# 2-layer leaky relu classification
+# 3-layer leaky relu classification
 #############################
-nn = NNModel(input.dim = 1, layers=c(5,1), activation=c('leaky.relu','leaky.relu'))
+nn = NNModel(input.dim = 1, layers=c(3,3,1), activation=c('leaky.relu','leaky.relu','leaky.relu'))
 X.trn = matrix(c(rnorm(50,mean=2,sd=.5), rnorm(50,mean=4,sd=.5)), nrow=100)
 Y.trn = matrix(c(rep(0,50), rep(1,50)))
 
-nn.trn = train(nn,X.trn,Y.trn, epochs=5000, mini.batch.size=15, learning.rate=0.01)
+nn.trn = train(nn,X.trn,Y.trn, epochs=15000, mini.batch.size=15, learning.rate=0.25)
 
 nn.prd = predict(nn.trn, X.trn)
 Y.trn - nn.prd
