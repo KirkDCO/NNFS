@@ -111,7 +111,7 @@ error.tanh = function(Y=NULL, Y.hat=NULL) {
 }
 
 error.softmax = function(Y=NULL, Y.hat=NULL) {
-  NULL
+  Y - Y.hat
 }
 
 
@@ -233,7 +233,6 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
       error = error.softmax
     }
     
-    # average the final adjustments
     # compute deltas
     if( l == length(layers) ){  #we're at the output layer
       delta = lapply( error(Y.trn, NNmod.old$layers[[layer]]$z), function(v) {v}) 
