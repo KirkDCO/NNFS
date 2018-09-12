@@ -86,9 +86,9 @@ d.relu = function(z=NULL) {
 }
 
 
-################
+#################
 # Error Functions
-################
+#################
 
 error.linear = function(Y=NULL, Y.hat=NULL) {
   Y - Y.hat
@@ -234,8 +234,19 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
     }
     
     # compute deltas
+    # this needs to be cleaned up -
     if( l == length(layers) ){  #we're at the output layer
-      delta = lapply( error(Y.trn, NNmod.old$layers[[layer]]$z), function(v) {v}) 
+      if( NNmod.old$layers[[layer]]$activation == 'softmax'){
+        err = error(Y.trn, NNmod.old$layers[[layer]]$z)
+        dummy = matrix(1, ncol=ncol(err), nrow=nrow(err))
+        delta = t(mapply(function(e, d) {
+          matrix(e, nrow=length(e))
+          }, split(err, row(err), drop=FALSE), 
+             split(dummy, row(dummy), drop=FALSE),
+        SIMPLIFY=FALSE))
+      }else{
+        delta = lapply( error(Y.trn, NNmod.old$layers[[layer]]$z), function(v) {v}) 
+      }
     }else{
       next.layer = layers[l+1]
       delta = t(mapply(function(del, z) {
@@ -255,7 +266,7 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
       prev.layer = layers[l-1]
       wt.adj = mapply(function(del, z) {del %*% z}, 
                       delta, split(NNmod.old$layers[[prev.layer]]$z, 
-                                 row(NNmod.old$layers[[prev.layer]]$z)),
+                                   row(NNmod.old$layers[[prev.layer]]$z)),
         SIMPLIFY=FALSE)
     }
     avg.wt.adj = Reduce('+', wt.adj)/length(wt.adj)

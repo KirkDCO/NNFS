@@ -408,7 +408,7 @@ Y.trn = matrix( c(rep(c(1,0,0), 75),
                   rep(c(0,1,0), 75),
                   rep(c(0,0,1), 75)), ncol=3, byrow=TRUE )
 
-nn.trn = train(nn,X.trn,Y.trn, epochs=50000, mini.batch.size=15, learning.rate=0.1)
+nn.trn = train(nn,X.trn,Y.trn, epochs=1000, mini.batch.size=15, learning.rate=0.1)
 
 nn.prd = predict(nn.trn, X.trn)
 Y.trn - nn.prd
