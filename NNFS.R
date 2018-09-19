@@ -26,7 +26,9 @@ relu = function(a=NULL) {
 }
 
 softmax = function(a=NULL) {
-  exp(a)/sum(exp(a))
+  t(apply(a, 1, function(r) {
+    exp(r)/sum(exp(r))
+  }))
 }
 
 # tanh is already defined in R
@@ -234,27 +236,21 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
     }
     
     # compute deltas
-    # this needs to be cleaned up -
     if( l == length(layers) ){  #we're at the output layer
       if( NNmod.old$layers[[layer]]$activation == 'softmax'){
-        err = error(Y.trn, NNmod.old$layers[[layer]]$z)
-        dummy = matrix(1, ncol=ncol(err), nrow=nrow(err))
-        delta = t(mapply(function(e, d) {
-          matrix(e, nrow=length(e))
-          }, split(err, row(err), drop=FALSE), 
-             split(dummy, row(dummy), drop=FALSE),
-        SIMPLIFY=FALSE))
+        err = t(error(Y.trn, NNmod.old$layers[[layer]]$z))
+        delta = lapply(seq_len(ncol(err)), function(i) as.matrix(err[,i], ncol=1))
       }else{
         delta = lapply( error(Y.trn, NNmod.old$layers[[layer]]$z), function(v) {v}) 
       }
     }else{
       next.layer = layers[l+1]
-      delta = t(mapply(function(del, z) {
+      delta = mapply(function(del, z) {
         wt.del = NNmod.old$layers[[next.layer]]$weights %*% del
         wt.del * d(as.matrix(z, nrow=dim(wt.del)[1], ncol=dim(wt.del[2])))},
           delta, split(NNmod.old$layers[[layer]]$z, 
                        row(NNmod.old$layers[[layer]]$z), drop=FALSE),
-        SIMPLIFY=FALSE))
+        SIMPLIFY=FALSE)
     }
 
     #compute weight adjustments
