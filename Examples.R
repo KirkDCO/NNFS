@@ -425,8 +425,8 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
   }
 }
 
-# 3-layer multinomial, 3 clusters
-######################################################
+# 3-layer multinomial, 2 clusters embedded in larger cluster
+############################################################
 library(MASS)
 nn = NNModel(input.dim = 2, layers=c(5,5,3), activation=c('sigmoid','sigmoid','softmax'))
 X.trn = rbind( mvrnorm(150, mu=c(0,0), Sigma = diag(3,nrow=2,ncol=2)),
@@ -452,5 +452,41 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
     points(x1,x2,pch=19,cex=.15,col=clr)
   }
 }
+
+# 3-layer multinomial, 6 clusters
+######################################################
+library(MASS)
+nn = NNModel(input.dim = 2, layers=c(5,5,6), activation=c('sigmoid','sigmoid','softmax'))
+X.trn = rbind( mvrnorm(100, mu=c(0,.75), Sigma = diag(.1,nrow=2,ncol=2)),
+               mvrnorm(100, mu=c(.75,.5), Sigma = diag(.1,nrow=2,ncol=2)),
+               mvrnorm(100, mu=c(.75,-.5), Sigma = diag(.1,nrow=2,ncol=2)),
+               mvrnorm(100, mu=c(0,-.75), Sigma = diag(.1,nrow=2,ncol=2)),
+               mvrnorm(100, mu=c(-.75,-.5), Sigma = diag(.1,nrow=2,ncol=2)),
+               mvrnorm(100, mu=c(-.75,.5), Sigma = diag(.1,nrow=2,ncol=2)))
+Y.trn = matrix( c(rep(c(1,0,0,0,0,0), 100),
+                  rep(c(0,1,0,0,0,0), 100),
+                  rep(c(0,0,1,0,0,0), 100),
+                  rep(c(0,0,0,1,0,0), 100),
+                  rep(c(0,0,0,0,1,0), 100),
+                  rep(c(0,0,0,0,0,1), 100)), ncol=6, byrow=TRUE )
+
+nn.trn = train(nn,X.trn,Y.trn, epochs=2500, mini.batch.size=15, learning.rate=0.1)
+
+nn.prd = predict(nn.trn, X.trn)
+Y.trn - nn.prd
+
+#plot classes and decision boundary
+plot(X.trn[,1], X.trn[,2], col=c(rep('red',100),rep('blue',100),rep('green',100),
+                                 rep('purple',100), rep('darkorange',100), rep('cyan',100)),
+     pch=19)
+
+for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
+  for( x2 in seq(from=min(X.trn[,2]), to=max(X.trn[,2]), length.out=200) ){
+    prd = predict(nn.trn, matrix(c(x1,x2), nrow=1))
+    clr = c('red', 'blue', 'green','purple','darkorange','cyan')[ which.max(prd) ]
+    points(x1,x2,pch=19,cex=.15,col=clr)
+  }
+}
+
 
 
