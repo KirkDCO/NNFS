@@ -7,11 +7,11 @@ In the summer of 2018, I completed the Deep Learning Specialization from Courser
 
 **Goal**
 
-My intention with this project was to write a fully functioning neural network architecture from base principles without ising an existing framework.  I wanted to implement various activation functions (linearly, sigmoidal, tanh, ReLU, leaky ReLU, and softmax) along with the code necessary for back propagation.  (I did use R's builtin tanh function, however.)
+My intention with this project was to write a fully functioning neural network architecture from base principles without ising an existing framework.  I wanted to implement various activation functions (linearly, sigmoidal, tanh, ReLU, leaky ReLU, and softmax) along with the code necessary for back propagation.  (I did use R's built in tanh function, however.)
 
 **What This Is**
 
-I have succeeded in my goal and was able to develop code necessary to create arbitraily deep and tall neural networks with the activation functions listed above.  And, I was able to do it in about 150 lines of actual code.  The Examples.R file contains a variety of experiments that I used to test the code while developing it.  In the end, I'm quite happy with the result and have learned a tremendous amount about the intricacies of neural networks.
+I have succeeded in my goal and was able to develop code necessary to create arbitraily deep and tall neural networks with the activation functions listed above.  And, I was able to do it in about 150 lines of actual code.  All of that is contained in NNFS.R which provides the functions necessary for this general purpose library.  The Examples.R file contains a variety of experiments I used to test the code while developing it.  In the end, I'm quite happy with the result and have learned a tremendous amount about the intricacies of neural networks.
 
 **What This Isn't**
 
