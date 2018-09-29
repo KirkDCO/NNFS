@@ -15,9 +15,12 @@ I have succeeded in my goal and was able to develop code necessary to create arb
 
 **What This Isn't**
 
-Fast - Actually, it runs quite well but it has in no way been optimized for speed.
+*Fast* 
+Actually, it runs quite well but it has in no way been optimized for speed.
 
-A framework - This was a learning project and while it provides a reusable code base, it certainly isn't a general purpose neural networks framework.
+*A framework*
+This was a learning project and while it provides a reusable code base, it certainly isn't a general purpose neural networks framework.
 
-Tidy - Since my intention was more mathematical and theorhetical, I relied on base R.
+*Tidy*
+Since my intention was more mathematical and theorhetical, I relied on base R.
 
