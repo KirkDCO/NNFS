@@ -7,7 +7,7 @@ In the summer of 2018, I completed the Deep Learning Specialization from Courser
 
 **Goal**
 
-My intention with this project was to write a fully functioning neural network architecture from base principles without use an existing framework.  I wanted to implement various activation functions (linearly, sigmoidal, tanh, ReLU, leaky ReLU, and softmax) along with the code necessary for back propagation.
+My intention with this project was to write a fully functioning neural network architecture from base principles without ising an existing framework.  I wanted to implement various activation functions (linearly, sigmoidal, tanh, ReLU, leaky ReLU, and softmax) along with the code necessary for back propagation.  (I did use R's builtin tanh function, however.)
 
 **What This Is**
 
