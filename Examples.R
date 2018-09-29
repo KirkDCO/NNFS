@@ -454,7 +454,7 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
 }
 
 # 3-layer multinomial, 6 clusters
-######################################################
+#################################
 library(MASS)
 nn = NNModel(input.dim = 2, layers=c(5,5,6), activation=c('sigmoid','sigmoid','softmax'))
 X.trn = rbind( mvrnorm(100, mu=c(0,.75), Sigma = diag(.1,nrow=2,ncol=2)),
@@ -488,5 +488,49 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
   }
 }
 
+
+# 3-layer multinomial, 10 randomly placed clusters
+##################################################
+library(MASS)
+nn = NNModel(input.dim = 2, layers=c(5,5,10), activation=c('sigmoid','sigmoid','softmax'),seed=180930)
+x1.rnd = runif(10,-1,1)
+x2.rnd = runif(10,-1,1)
+s.rnd = rnorm(n=10,mean=0.1,sd=.05)
+X.trn = rbind( mvrnorm(100, mu=c(x1.rnd[1], x2.rnd[1]), Sigma = diag(s.rnd[1],nrow=2,ncol=2)),
+               mvrnorm(100, mu=c(x1.rnd[2], x2.rnd[2]), Sigma = diag(s.rnd[2],nrow=2,ncol=2)),
+               mvrnorm(100, mu=c(x1.rnd[3], x2.rnd[3]), Sigma = diag(s.rnd[3],nrow=2,ncol=2)),
+               mvrnorm(100, mu=c(x1.rnd[4], x2.rnd[4]), Sigma = diag(s.rnd[4],nrow=2,ncol=2)),
+               mvrnorm(100, mu=c(x1.rnd[5], x2.rnd[5]), Sigma = diag(s.rnd[5],nrow=2,ncol=2)),
+               mvrnorm(100, mu=c(x1.rnd[6], x2.rnd[6]), Sigma = diag(s.rnd[6],nrow=2,ncol=2)),
+               mvrnorm(100, mu=c(x1.rnd[7], x2.rnd[7]), Sigma = diag(s.rnd[7],nrow=2,ncol=2)),
+               mvrnorm(100, mu=c(x1.rnd[8], x2.rnd[8]), Sigma = diag(s.rnd[8],nrow=2,ncol=2)),
+               mvrnorm(100, mu=c(x1.rnd[9], x2.rnd[9]), Sigma = diag(s.rnd[9],nrow=2,ncol=2)),
+               mvrnorm(100, mu=c(x1.rnd[10], x2.rnd[10]), Sigma = diag(s.rnd[10],nrow=2,ncol=2)))
+Y.trn = matrix( c(rep(c(1,0,0,0,0,0,0,0,0,0), 100),
+                  rep(c(0,1,0,0,0,0,0,0,0,0), 100),
+                  rep(c(0,0,1,0,0,0,0,0,0,0), 100),
+                  rep(c(0,0,0,1,0,0,0,0,0,0), 100),
+                  rep(c(0,0,0,0,1,0,0,0,0,0), 100),
+                  rep(c(0,0,0,0,0,1,0,0,0,0), 100),
+                  rep(c(0,0,0,0,0,0,1,0,0,0), 100),
+                  rep(c(0,0,0,0,0,0,0,1,0,0), 100),
+                  rep(c(0,0,0,0,0,0,0,0,1,0), 100),
+                  rep(c(0,0,0,0,0,0,0,0,0,1), 100)), ncol=10, byrow=TRUE )
+
+nn.trn = train(nn,X.trn,Y.trn, epochs=1000, mini.batch.size=25, learning.rate=0.1)
+
+nn.prd = predict(nn.trn, X.trn)
+Y.trn - nn.prd
+
+#plot classes and decision boundary
+plot(X.trn[,1], X.trn[,2], col=rep(rainbow(10),each=100), pch=19)
+
+for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
+  for( x2 in seq(from=min(X.trn[,2]), to=max(X.trn[,2]), length.out=200) ){
+    prd = predict(nn.trn, matrix(c(x1,x2), nrow=1))
+    clr = rainbow(10)[ which.max(prd) ]
+    points(x1,x2,pch=19,cex=.15,col=clr)
+  }
+}
 
 
