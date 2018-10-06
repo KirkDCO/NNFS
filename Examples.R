@@ -559,7 +559,7 @@ y3 <- runif(min = min(y2),max = max(y2),n=length(n)/2)
 X.trn <- matrix(c(x2,x3,y2,y3), nrow=3000, byrow=FALSE)
 Y.trn <- matrix(c(rep(0,2000), rep(1,1000)), nrow=3000, byrow=FALSE)
 
-nn = NNModel(input.dim=2, layers=c(5,5,5,1), activations=c('relu','relu','relu','sigmoid'))
+nn = NNModel(input.dim=2, layers=c(5,5,5,1), activations=c('leaky.relu','leaky.relu','leaky.relu','sigmoid'))
 nn.trn = train(nn,X.trn,Y.trn, epochs=50000, mini.batch.size=25, learning.rate=0.5)
 
 #plot 
