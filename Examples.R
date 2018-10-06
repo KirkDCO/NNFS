@@ -480,11 +480,19 @@ plot(X.trn[,1], X.trn[,2], col=c(rep('red',100),rep('blue',100),rep('green',100)
                                  rep('purple',100), rep('darkorange',100), rep('cyan',100)),
      pch=19)
 
+prd.old = which.max(predict(nn.trn, matrix(c(min(X.trn[,1]),min(X.trn[,2])),nrow=1)))
+x2.old = min(X.trn[,2])
+
 for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
-  for( x2 in seq(from=min(X.trn[,2]), to=max(X.trn[,2]), length.out=200) ){
+  for( x2 in seq(from=min(X.trn[,2]), to=max(X.trn[,2]), length.out=200) ) {
     prd = predict(nn.trn, matrix(c(x1,x2), nrow=1))
     clr = c('red', 'blue', 'green','purple','darkorange','cyan')[ which.max(prd) ]
     points(x1,x2,pch=19,cex=.15,col=clr)
+    if( which.max(prd) != prd.old & x2 != min(X.trn[,2]) ){
+      points(x1,(x2+x2.old)/2,pch=19,cex=0.15,col='black')
+    }
+    prd.old = which.max(prd)
+    x2.old = x2
   }
 }
 
@@ -525,11 +533,19 @@ Y.trn - nn.prd
 #plot classes and decision boundary
 plot(X.trn[,1], X.trn[,2], col=rep(rainbow(10),each=100), pch=19)
 
+prd.old = which.max(predict(nn.trn, matrix(c(min(X.trn[,1]),min(X.trn[,2])),nrow=1)))
+x2.old = min(X.trn[,2])
+
 for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
-  for( x2 in seq(from=min(X.trn[,2]), to=max(X.trn[,2]), length.out=200) ){
+  for( x2 in seq(from=min(X.trn[,2]), to=max(X.trn[,2]), length.out=200) ) {
     prd = predict(nn.trn, matrix(c(x1,x2), nrow=1))
     clr = rainbow(10)[ which.max(prd) ]
     points(x1,x2,pch=19,cex=.15,col=clr)
+    if( which.max(prd) != prd.old & x2 != min(X.trn[,2]) ){
+      points(x1,(x2+x2.old)/2,pch=19,cex=0.15,col='black')
+    }
+    prd.old = which.max(prd)
+    x2.old = x2
   }
 }
 
@@ -539,7 +555,7 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
 
 #data generation modified from:  https://stats.stackexchange.com/questions/164048/can-a-random-forest-be-used-for-feature-selection-in-multiple-linear-regression
 #basic
-n <- 1:2000
+n <- 1:1500
 r <- 0.05*n +1 
 th <- n*(4*pi)/max(n)
 
@@ -556,11 +572,11 @@ x3 <- runif(min = min(x2),max = max(x2),n=length(n)/2)
 y3 <- runif(min = min(y2),max = max(y2),n=length(n)/2)
 
 #assemble data into frame 
-X.trn <- matrix(c(x2,x3,y2,y3), nrow=3000, byrow=FALSE)
-Y.trn <- matrix(c(rep(0,2000), rep(1,1000)), nrow=3000, byrow=FALSE)
+X.trn <- matrix(c(x2,x3,y2,y3), nrow=length(n)*1.5, byrow=FALSE)
+Y.trn <- matrix(c(rep(0,length(n)), rep(1,length(n)/2)), nrow=length(n)*1.5, byrow=FALSE)
 
 nn = NNModel(input.dim=2, layers=c(5,5,5,1), activations=c('leaky.relu','leaky.relu','leaky.relu','sigmoid'))
-nn.trn = train(nn,X.trn,Y.trn, epochs=50000, mini.batch.size=25, learning.rate=0.5)
+nn.trn = train(nn,X.trn,Y.trn, epochs=1000, mini.batch.size=25, learning.rate=0.1)
 
 #plot 
 plot(X.trn[,1], X.trn[,2],pch=19, col=c('red','blue')[Y.trn +1])
