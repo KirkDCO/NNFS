@@ -37,7 +37,7 @@ leaky.relu = function(a=NULL) {
 }
 
 relu = function(a=NULL) {
-  a[qhich(a<0)] = 0
+  a[which(a<0)] = 0
   a
 }
 

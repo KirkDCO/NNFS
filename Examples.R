@@ -534,3 +534,43 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
 }
 
 
+# Spiral problem
+################
+
+#data generation modified from:  https://stats.stackexchange.com/questions/164048/can-a-random-forest-be-used-for-feature-selection-in-multiple-linear-regression
+#basic
+n <- 1:2000
+r <- 0.05*n +1 
+th <- n*(4*pi)/max(n)
+
+#polar to cartesian
+x1=r*cos(th) 
+y1=r*sin(th)
+
+#add noise
+x2 <- x1+0.1*r*runif(min = -1,max = 1,n=length(n))
+y2 <- y1+0.1*r*runif(min = -1,max = 1,n=length(n))
+
+#append salt and pepper
+x3 <- runif(min = min(x2),max = max(x2),n=length(n)/2)
+y3 <- runif(min = min(y2),max = max(y2),n=length(n)/2)
+
+#assemble data into frame 
+X.trn <- matrix(c(x2,x3,y2,y3), nrow=3000, byrow=FALSE)
+Y.trn <- matrix(c(rep(0,2000), rep(1,1000)), nrow=3000, byrow=FALSE)
+
+nn = NNModel(input.dim=2, layers=c(5,5,5,1), activations=c('relu','relu','relu','sigmoid'))
+nn.trn = train(nn,X.trn,Y.trn, epochs=50000, mini.batch.size=25, learning.rate=0.5)
+
+#plot 
+plot(X.trn[,1], X.trn[,2],pch=19, col=c('red','blue')[Y.trn +1])
+
+#plot classes and decision boundary
+cut.point = 0.5
+for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200)) {
+  for( x2 in seq(from=min(X.trn[,2]), to=max(X.trn[,2]), length.out=200)) {
+    prd = predict(nn.trn, matrix(c(x1,x2), nrow=1))
+    clr = c('red', 'blue')[ (prd>cut.point)+1 ]
+    points(x1,x2,pch=19,cex=.15,col=clr)
+  }
+}
