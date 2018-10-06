@@ -576,17 +576,26 @@ X.trn <- matrix(c(x2,x3,y2,y3), nrow=length(n)*1.5, byrow=FALSE)
 Y.trn <- matrix(c(rep(0,length(n)), rep(1,length(n)/2)), nrow=length(n)*1.5, byrow=FALSE)
 
 nn = NNModel(input.dim=2, layers=c(5,5,5,1), activations=c('leaky.relu','leaky.relu','leaky.relu','sigmoid'))
-nn.trn = train(nn,X.trn,Y.trn, epochs=1000, mini.batch.size=25, learning.rate=0.1)
+nn.trn = train(nn,X.trn,Y.trn, epochs=2500, mini.batch.size=25, learning.rate=0.1)
 
 #plot 
 plot(X.trn[,1], X.trn[,2],pch=19, col=c('red','blue')[Y.trn +1])
 
 #plot classes and decision boundary
 cut.point = 0.5
+
+prd.old = predict(nn.trn, matrix(c(min(X.trn[,1]),min(X.trn[,2])),nrow=1)) > cut.point
+x2.old = min(X.trn[,2])
+
 for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200)) {
   for( x2 in seq(from=min(X.trn[,2]), to=max(X.trn[,2]), length.out=200)) {
     prd = predict(nn.trn, matrix(c(x1,x2), nrow=1))
     clr = c('red', 'blue')[ (prd>cut.point)+1 ]
     points(x1,x2,pch=19,cex=.15,col=clr)
+    if( (prd > cut.point) != (prd.old > cut.point) & x2 != min(X.trn[,2]) ){
+      points(x1,(x2+x2.old)/2,pch=19,cex=0.25,col='black')
+    }
+    prd.old = prd
+    x2.old = x2
   }
 }
