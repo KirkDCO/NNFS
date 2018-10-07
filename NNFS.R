@@ -145,7 +145,7 @@ NNModel = function( input.dim = NULL, layers = NULL, activations = NULL,
   # activations = vector of activations types per layer
   #               can be linear, tanh, sigmoid, relu, leaky.relu, and softmax
   #               softmax is assumed to be the last layer for multicategory output
-  # batch.nrom = vector of TRUE/FALSE designating whether batch norm is performed for each layer
+  # batch.norm = vector of TRUE/FALSE designating whether batch norm is performed for each layer
   # drop.out.rate = vector of values for drop-out rate per layer
   # assumed all vectors same length = number of layers
   
@@ -337,7 +337,7 @@ predict = function( NNModel=NULL, X=NULL) {
   # NNModel =list generated from NNModel() function above
   # X = matrix the full training dataset organized as observations X covariates (nXm)
   
-  # returns a vector of predictions for each observation in the X set
+  # returns a vector/matrix of predictions for each observation in the X set
   # assume input dimensions and order of covariates are consistent with the
   # supplied model
   

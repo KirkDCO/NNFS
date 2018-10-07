@@ -27,6 +27,11 @@ This was a learning project and while it provides a reusable code base, it certa
 
 Since my intention was more mathematical and theoretical, I relied on base R.
 
+*Done*
+
+There are a few things left to do here (e.g., batch normalization of weights, implement dropout), and I'm sure more will come up over time.  For now, I've accomplished my goal and will work on this as I have time.
+
+
 ## LICENSE
 
 Copyright 2018 Robert Kirk DeLisle
