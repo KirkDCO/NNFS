@@ -599,3 +599,100 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200)) {
     x2.old = x2
   }
 }
+
+MNIST
+#####
+
+# the MNIST dataset was downloaded from the Digit Recognizer project on Kaggle
+# https://www.kaggle.com/c/digit-recognizer
+# the Training set file was converted into a pixels file and a file with one hot labels, used here
+# using the Convert_MNIST_to_NNFS.R script 
+# Data is not included as I don't know if I can distribute it and it is quite large
+
+# get accuracy function for later use
+get.acc = function(nn, X.trn, target, show.conf.mat = FALSE) {
+  prd = apply( X.trn, 1, function(r) {
+    which.max(predict(nn, matrix(r, nrow=1))) - 1
+  })
+  t = table(target, prd)
+  if( show.conf.mat ){
+    print(t)
+  }
+  sum(diag(t))/sum(t)
+}
+
+# get orginal data
+d.pixels = read.csv('../MNIST_dataset/mnist_pixels.csv', header = TRUE)
+d.onehot.labels = read.csv('../MNIST_dataset/mnist_labels_onehot.csv', header = TRUE)
+
+# build training, validation, test sets
+set.seed(181110)
+indices = sample(1:42000, 42000, replace = FALSE)
+train.set = indices[1:21000]
+val.set = indices[21001:31500]
+test.set = indices[31501:42000]
+
+# reduced set sizes for experiments and tuning
+train.set = indices[1:2100]
+val.set = indices[2101:3150]
+test.set = indices[3151:4200]
+
+X.trn = as.matrix(d.pixels[train.set, ])
+Y.trn = as.matrix(d.onehot.labels[train.set, ])
+digit.trn = apply(Y.trn, 1, function(r) {
+  which.max(r) - 1
+})
+
+X.val = as.matrix(d.pixels[val.set, ])
+Y.val = as.matrix(d.onehot.labels[val.set, ])
+digit.val = apply(Y.val, 1, function(r) {
+  which.max(r) -1 
+})
+
+X.tst = as.matrix(d.pixels[test.set, ])
+Y.tst = as.matrix(d.onehot.labels[test.set, ])
+digit.tst = apply(Y.tst, 1, function(r) {
+  which.max(r) - 1
+})
+
+# logistic
+nn.trn = NNModel(input.dim = 784, layers=c(15, 10), activation=c('sigmoid', 'softmax'))
+
+# 3-layer
+nn.trn = NNModel(input.dim = 784, layers=c(15, 15, 10), 
+                 activation=c('sigmoid', 'sigmoid', 'softmax'))
+
+# multiple epochs with plotting between epochs
+n.epochs = 1000
+learning.rate = 0.25
+
+# set up accuracy plotting
+plot( 0:n.epochs, seq(0,1,length.out=(n.epochs+1)), type = 'n',
+      xlab = 'Epoch #', ylab = 'Accuracy')
+grid()
+points( c(0,0,0), c(get.acc(nn.trn, X.trn, digit.trn),
+                    get.acc(nn.trn, X.val, digit.val),
+                    get.acc(nn.trn, X.tst, digit.tst)),
+        bg = c('blue', 'darkorange', 'red'), pch = 21, col='black')
+legend('topleft', legend=c('Training', 'Validation', 'Test'),
+       pt.bg = c('blue', 'darkorange', 'red'), pch=21, col = 'black')
+
+#look at the confusion matrices before training
+get.acc(nn.trn, X.trn, digit.trn, show.conf.mat = TRUE)
+get.acc(nn.trn, X.val, digit.val, show.conf.mat = TRUE)
+get.acc(nn.trn, X.tst, digit.tst, show.conf.mat = TRUE)
+
+for( e in 1:n.epochs) {
+  nn.trn = train(nn.trn,X.trn,Y.trn, epochs=1, mini.batch.size=100, learning.rate=learning.rate)
+  points( rep(e,3), c(get.acc(nn.trn, X.trn, digit.trn),
+                      get.acc(nn.trn, X.val, digit.val),
+                      get.acc(nn.trn, X.tst, digit.tst)),
+          bg = c('blue', 'darkorange', 'red'), pch = 21, col='black')
+}
+
+#confusion matrices after training
+get.acc(nn.trn, X.trn, digit.trn, show.conf.mat = TRUE)
+get.acc(nn.trn, X.val, digit.val, show.conf.mat = TRUE)
+get.acc(nn.trn, X.tst, digit.tst, show.conf.mat = TRUE)
+
+  
