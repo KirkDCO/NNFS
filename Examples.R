@@ -655,17 +655,24 @@ digit.tst = apply(Y.tst, 1, function(r) {
   which.max(r) - 1
 })
 
-# logistic
+# 2-layer
 nn.trn = NNModel(input.dim = 784, layers=c(15, 10), activation=c('sigmoid', 'softmax'))
+learning.rate = 0.1
+n.epochs = 250
 
 # 3-layer
-nn.trn = NNModel(input.dim = 784, layers=c(15, 15, 10), 
+nn.trn = NNModel(input.dim = 784, layers=c(15, 10, 10), 
                  activation=c('sigmoid', 'sigmoid', 'softmax'))
+learning.rate = 0.1
+n.epochs = 1000
+
+# 5-layer
+nn.trn = NNModel(input.dim = 784, layers=c(15, 10, 10, 5, 10), 
+                 activation=c('leaky.relu', 'leaky.relu', 'leaky.relu', 'leaky.relu', 'softmax'))
+learning.rate = 0.001
+n.epochs = 1000
 
 # multiple epochs with plotting between epochs
-n.epochs = 1000
-learning.rate = 0.25
-
 # set up accuracy plotting
 plot( 0:n.epochs, seq(0,1,length.out=(n.epochs+1)), type = 'n',
       xlab = 'Epoch #', ylab = 'Accuracy')
@@ -674,7 +681,7 @@ points( c(0,0,0), c(get.acc(nn.trn, X.trn, digit.trn),
                     get.acc(nn.trn, X.val, digit.val),
                     get.acc(nn.trn, X.tst, digit.tst)),
         bg = c('blue', 'darkorange', 'red'), pch = 21, col='black')
-legend('topleft', legend=c('Training', 'Validation', 'Test'),
+legend('bottomright', legend=c('Training', 'Validation', 'Test'),
        pt.bg = c('blue', 'darkorange', 'red'), pch=21, col = 'black')
 
 #look at the confusion matrices before training
