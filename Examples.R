@@ -621,6 +621,49 @@ get.acc = function(nn, X.trn, target, show.conf.mat = FALSE) {
   sum(diag(t))/sum(t)
 }
 
+#plot a random set of misclassified examples and show actual/predicted class
+plot.random.misclass = function(nn.trn, X, Y) {
+  #get 9 random mistakes
+  prd = apply( X, 1, function(r) {
+    which.max(predict(nn, matrix(r, nrow=1))) - 1
+  })
+  trg = apply(Y, 1, function(r) {
+    which.max(r) - 1
+  })
+  e = which(prd != trg)
+  e.pick = sample(e, size = 9)
+  
+  plot(1:100,1:100, type='n', axes=FALSE, xlab='', ylab='', ylim=c(100,0) )
+  
+  for( i in 0:2 ){
+    for( j in 0:2 ) {
+      
+      q = i + j*3 + 1
+      z = matrix(X[e.pick[q], ], nrow = 28, byrow=FALSE)
+      actual = trg[e.pick[q]]
+      pred = prd[e.pick[q]]
+      
+      start.x = 2 + i * 34
+      start.y = 2 + j * 34
+      delta.x = start.x - 1
+      delta.y = start.y - 1
+      
+      text(start.x-1,start.y-2, pos = 4,
+           sprintf('Actual: %d Predicted %d', actual, pred))
+      for( x in start.x:(start.x + 27) ){
+        for( y in start.y:(start.y + 27) ){
+          rect(x, y+1, x+1, y, 
+               col = rgb(z[x-delta.x,y-delta.y],
+                         z[x-delta.x,y-delta.y],
+                         z[x-delta.x,y-delta.y], maxColorValue = 255),
+               border = NA)
+        }
+      }
+      
+    }
+  }
+}
+
 # get orginal data
 d.pixels = read.csv('../MNIST_dataset/mnist_pixels.csv', header = TRUE)
 d.onehot.labels = read.csv('../MNIST_dataset/mnist_labels_onehot.csv', header = TRUE)
@@ -661,7 +704,7 @@ learning.rate = 0.1
 n.epochs = 250
 
 # 3-layer
-nn.trn = NNModel(input.dim = 784, layers=c(15, 10, 10), 
+nn.trn = NNModel(input.dim = 784, layers=c(20, 20, 10), 
                  activation=c('sigmoid', 'sigmoid', 'softmax'))
 learning.rate = 0.1
 n.epochs = 1000
@@ -697,9 +740,52 @@ for( e in 1:n.epochs) {
           bg = c('blue', 'darkorange', 'red'), pch = 21, col='black')
 }
 
-#confusion matrices after training
+ #confusion matrices after training
 get.acc(nn.trn, X.trn, digit.trn, show.conf.mat = TRUE)
 get.acc(nn.trn, X.val, digit.val, show.conf.mat = TRUE)
 get.acc(nn.trn, X.tst, digit.tst, show.conf.mat = TRUE)
+
+plot.random.misclass = function(nn.trn, X, Y) {
+  #get 9 random mistakes
+  prd = apply( X, 1, function(r) {
+    which.max(predict(nn, matrix(r, nrow=1))) - 1
+  })
+  trg = apply(Y, 1, function(r) {
+    which.max(r) - 1
+  })
+  e = which(prd != trg)
+  e.pick = sample(e, size = 9)
+
+  plot(1:100,1:100, type='n', axes=FALSE, xlab='', ylab='', ylim=c(100,0) )
+  
+  for( i in 0:2 ){
+    for( j in 0:2 ) {
+      
+      q = i + j*3 + 1
+      z = matrix(X[e.pick[q], ], nrow = 28, byrow=FALSE)
+      actual = trg[e.pick[q]]
+      pred = prd[e.pick[q]]
+      
+      start.x = 2 + i * 34
+      start.y = 2 + j * 34
+      delta.x = start.x - 1
+      delta.y = start.y - 1
+      
+      text(start.x-1,start.y-3, pos = 4,
+           sprintf('Actual: %d Predicted %d', actual, pred))
+      for( x in start.x:(start.x + 27) ){
+        for( y in start.y:(start.y + 27) ){
+          points(x,y, col=rgb(z[x-delta.x,y-delta.y],
+                                 z[x-delta.x,y-delta.y],
+                                 z[x-delta.x,y-delta.y], maxColorValue = 255), 
+                 pch=15, cex=2)     
+        }
+      }
+    
+    }
+  }
+}
+
+
 
   
