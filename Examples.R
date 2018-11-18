@@ -714,7 +714,7 @@ n.epochs = 1000
 nn.trn = NNModel(input.dim = 784, layers=c(25, 20, 15, 10, 10), 
                  activation=c('leaky.relu', 'leaky.relu', 'leaky.relu', 'leaky.relu', 'softmax'))
 learning.rate = 0.01
-n.epochs = 1000
+n.epochs = 5000
 
 # multiple epochs with plotting between epochs
 # set up accuracy plotting
