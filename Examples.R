@@ -625,13 +625,13 @@ get.acc = function(nn, X.trn, target, show.conf.mat = FALSE) {
 plot.random.misclass = function(nn.trn, X, Y) {
   #get 9 random mistakes
   prd = apply( X, 1, function(r) {
-    which.max(predict(nn, matrix(r, nrow=1))) - 1
+    which.max(predict(nn.trn, matrix(r, nrow=1))) - 1
   })
   trg = apply(Y, 1, function(r) {
     which.max(r) - 1
   })
   e = which(prd != trg)
-  e.pick = sample(e, size = 9)
+  e.pick = sample(e, size = min(9,length(e)))
   
   plot(1:100,1:100, type='n', axes=FALSE, xlab='', ylab='', ylim=c(100,0) )
   
@@ -639,27 +639,28 @@ plot.random.misclass = function(nn.trn, X, Y) {
     for( j in 0:2 ) {
       
       q = i + j*3 + 1
-      z = matrix(X[e.pick[q], ], nrow = 28, byrow=FALSE)
-      actual = trg[e.pick[q]]
-      pred = prd[e.pick[q]]
-      
-      start.x = 2 + i * 34
-      start.y = 2 + j * 34
-      delta.x = start.x - 1
-      delta.y = start.y - 1
-      
-      text(start.x-1,start.y-2, pos = 4,
-           sprintf('Actual: %d Predicted %d', actual, pred))
-      for( x in start.x:(start.x + 27) ){
-        for( y in start.y:(start.y + 27) ){
-          rect(x, y+1, x+1, y, 
-               col = rgb(z[x-delta.x,y-delta.y],
-                         z[x-delta.x,y-delta.y],
-                         z[x-delta.x,y-delta.y], maxColorValue = 255),
-               border = NA)
+      if( q <= length(e)) {
+        z = matrix(X[e.pick[q], ], nrow = 28, byrow=FALSE)
+        actual = trg[e.pick[q]]
+        pred = prd[e.pick[q]]
+        
+        start.x = 2 + i * 34
+        start.y = 2 + j * 34
+        delta.x = start.x - 1
+        delta.y = start.y - 1
+        
+        text(start.x-1,start.y-2, pos = 4,
+             sprintf('Actual: %d Predicted %d', actual, pred))
+        for( x in start.x:(start.x + 27) ){
+          for( y in start.y:(start.y + 27) ){
+            rect(x, y+1, x+1, y, 
+                 col = rgb(z[x-delta.x,y-delta.y],
+                           z[x-delta.x,y-delta.y],
+                           z[x-delta.x,y-delta.y], maxColorValue = 255),
+                 border = NA)
+          }
         }
       }
-      
     }
   }
 }
@@ -669,7 +670,7 @@ d.pixels = read.csv('../MNIST_dataset/mnist_pixels.csv', header = TRUE)
 d.onehot.labels = read.csv('../MNIST_dataset/mnist_labels_onehot.csv', header = TRUE)
 
 # build training, validation, test sets
-set.seed(181110)
+set.seed(181117)
 indices = sample(1:42000, 42000, replace = FALSE)
 train.set = indices[1:21000]
 val.set = indices[21001:31500]
@@ -710,9 +711,9 @@ learning.rate = 0.1
 n.epochs = 1000
 
 # 5-layer
-nn.trn = NNModel(input.dim = 784, layers=c(15, 10, 10, 5, 10), 
+nn.trn = NNModel(input.dim = 784, layers=c(25, 20, 15, 10, 10), 
                  activation=c('leaky.relu', 'leaky.relu', 'leaky.relu', 'leaky.relu', 'softmax'))
-learning.rate = 0.001
+learning.rate = 0.01
 n.epochs = 1000
 
 # multiple epochs with plotting between epochs
@@ -745,46 +746,9 @@ get.acc(nn.trn, X.trn, digit.trn, show.conf.mat = TRUE)
 get.acc(nn.trn, X.val, digit.val, show.conf.mat = TRUE)
 get.acc(nn.trn, X.tst, digit.tst, show.conf.mat = TRUE)
 
-plot.random.misclass = function(nn.trn, X, Y) {
-  #get 9 random mistakes
-  prd = apply( X, 1, function(r) {
-    which.max(predict(nn, matrix(r, nrow=1))) - 1
-  })
-  trg = apply(Y, 1, function(r) {
-    which.max(r) - 1
-  })
-  e = which(prd != trg)
-  e.pick = sample(e, size = 9)
-
-  plot(1:100,1:100, type='n', axes=FALSE, xlab='', ylab='', ylim=c(100,0) )
-  
-  for( i in 0:2 ){
-    for( j in 0:2 ) {
-      
-      q = i + j*3 + 1
-      z = matrix(X[e.pick[q], ], nrow = 28, byrow=FALSE)
-      actual = trg[e.pick[q]]
-      pred = prd[e.pick[q]]
-      
-      start.x = 2 + i * 34
-      start.y = 2 + j * 34
-      delta.x = start.x - 1
-      delta.y = start.y - 1
-      
-      text(start.x-1,start.y-3, pos = 4,
-           sprintf('Actual: %d Predicted %d', actual, pred))
-      for( x in start.x:(start.x + 27) ){
-        for( y in start.y:(start.y + 27) ){
-          points(x,y, col=rgb(z[x-delta.x,y-delta.y],
-                                 z[x-delta.x,y-delta.y],
-                                 z[x-delta.x,y-delta.y], maxColorValue = 255), 
-                 pch=15, cex=2)     
-        }
-      }
-    
-    }
-  }
-}
+plot.random.misclass(nn.trn,X.trn,Y.trn)
+plot.random.misclass(nn.trn,X.val,Y.val)
+plot.random.misclass(nn.trn,X.tst,Y.tst)
 
 
 
