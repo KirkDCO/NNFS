@@ -750,6 +750,27 @@ plot.random.misclass(nn.trn,X.trn,Y.trn)
 plot.random.misclass(nn.trn,X.val,Y.val)
 plot.random.misclass(nn.trn,X.tst,Y.tst)
 
+# image from X,y
+library(imager)
+# review https://dahtah.github.io/imager/imager.html
 
-
+img = load.image('Petro.jpeg')
+img.df = as.data.frame(img)
+X.trn = as.matrix(img.df[,1:2])
+Y.trn = as.matrix(img.df[,3], nrow=dim(img.df)[1])
   
+nn = NNModel(input.dim = 2, layers=c(25, 25, 1), 
+                 activation=c('leaky.relu', 'leaky.relu', 'sigmoid'))
+learning.rate = 0.1
+n.epochs = 1000
+nn.trn = train(nn,X.trn,Y.trn, epochs=n.epochs, mini.batch.size=25, learning.rate=learning.rate)
+
+img.prd.df = img.df
+img.prd.df$value = apply(img.prd.df, 1, function(r) {
+  predict(nn.trn, X=matrix(c(r[1], r[2]), nrow=1))
+})
+img.prd = as.cimg(img.prd.df)
+opar = par(mfrow=c(1,2))
+  plot(as.cimg(img.df))
+  plot(img.prd)
+par(opar)
