@@ -750,7 +750,11 @@ plot.random.misclass(nn.trn,X.trn,Y.trn)
 plot.random.misclass(nn.trn,X.val,Y.val)
 plot.random.misclass(nn.trn,X.tst,Y.tst)
 
+
+
+
 # image from X,y
+################
 library(imager)
 # review https://dahtah.github.io/imager/imager.html
 
