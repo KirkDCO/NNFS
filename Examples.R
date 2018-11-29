@@ -600,7 +600,7 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200)) {
   }
 }
 
-MNIST
+#MNIST
 #####
 
 # the MNIST dataset was downloaded from the Digit Recognizer project on Kaggle
@@ -759,10 +759,10 @@ img.df = as.data.frame(img)
 X.trn = as.matrix(img.df[,1:2])
 Y.trn = as.matrix(img.df[,3], nrow=dim(img.df)[1])
   
-nn = NNModel(input.dim = 2, layers=c(25, 25, 1), 
-                 activation=c('leaky.relu', 'leaky.relu', 'sigmoid'))
-learning.rate = 0.1
-n.epochs = 1000
+nn = NNModel(input.dim = 2, layers=c(100, 100, 100, 1), 
+                 activation=c('leaky.relu', 'leaky.relu', 'leaky.relu', 'sigmoid'))
+learning.rate = 0.01
+n.epochs = 25000
 nn.trn = train(nn,X.trn,Y.trn, epochs=n.epochs, mini.batch.size=25, learning.rate=learning.rate)
 
 img.prd.df = img.df

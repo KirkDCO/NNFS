@@ -177,7 +177,7 @@ NNModel = function( input.dim = NULL, layers = NULL, activations = NULL,
 # Model functions
 #################
 
-forward.prop = function(NNmod = NULL, X.trn=NULL){
+forward.prop = function(NNmod = NULL, X=NULL){
   
   # NNmod = list generated from NNmod() function above
   # X = matrix of inputs (1 x m) of appropriate dimensions for the NNmod
@@ -191,7 +191,7 @@ forward.prop = function(NNmod = NULL, X.trn=NULL){
   for(l in 1:length(layers)){
     
     if( l == 1 ){ 
-      a = X.trn %*% NNmod$layers[[layers[l]]]$weights
+      a = X %*% NNmod$layers[[layers[l]]]$weights
     }else{
       a = NNmod$layers[[layers[l-1]]]$z %*% NNmod$layers[[layers[l]]]$weights
     }
@@ -216,11 +216,11 @@ forward.prop = function(NNmod = NULL, X.trn=NULL){
   NNmod
 }
 
-back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
+back.prop = function(NNmod=NULL, X=NULL, Y=NULL, learning.rate=NULL) {
   
   # NNModel = list generated from NNModel() function above
-  # Y.trn = vector of the actual y-values being modeled
-  # X.trn = training set (or minibatch) for this round
+  # Y = vector of the actual y-values being modeled
+  # X = training set (or minibatch) for this round
   
   # returns a NNModel list with updated weights
   
@@ -254,10 +254,10 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
     # compute deltas
     if( l == length(layers) ){  #we're at the output layer
       if( NNmod.old$layers[[layer]]$activation == 'softmax'){
-        err = t(error(Y.trn, NNmod.old$layers[[layer]]$z))
+        err = t(error(Y, NNmod.old$layers[[layer]]$z))
         delta = lapply(seq_len(ncol(err)), function(i) as.matrix(err[,i], ncol=1))
       }else{
-        delta = lapply( error(Y.trn, NNmod.old$layers[[layer]]$z), function(v) {v}) 
+        delta = lapply( error(Y, NNmod.old$layers[[layer]]$z), function(v) {v}) 
       }
     }else{
       next.layer = layers[l+1]
@@ -272,7 +272,7 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
     #compute weight adjustments
     if( l == 1 ) {   #we're at the first layer
       wt.adj = mapply( function(del,x) {
-        del %*% x}, delta, split(X.trn, row(X.trn)),
+        del %*% x}, delta, split(X, row(X)),
         SIMPLIFY=FALSE)
     }else{
       prev.layer = layers[l-1]
@@ -297,14 +297,12 @@ back.prop = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, learning.rate=NULL) {
   NNmod
 }
 
-train = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, X.tst=NULL, Y.tst=NULL,
-                 mini.batch.size=NULL, epochs=NULL, learning.rate=0.1, seed=20180808) {
+train = function(NNmod=NULL, X=NULL, Y=NULL, mini.batch.size=NULL, 
+                 epochs=NULL, learning.rate=0.1, seed=20180808) {
   
-  # NNModel =list generated from NNModel() function above
-  # X.trn = the training dataset, organized as observations X covariates (nXm)
-  # Y.trn = the expected outputs for each observations in X
-  # X.tst = a test set of data for monitoring during training
-  # Y.tst = expected ouptus for the test set
+  # NNMod =list generated from NNModel() function above
+  # X = the training dataset, organized as observations X covariates (nXm)
+  # Y = the expected outputs for each observations in X
   # mini.batch.size = number of observations used in each training step
   # epochs = number of total passes through the dataset
   
@@ -314,18 +312,18 @@ train = function(NNmod=NULL, X.trn=NULL, Y.trn=NULL, X.tst=NULL, Y.tst=NULL,
   set.seed(seed)
   
   #compute number of batches needed for a full epoch
-  batches = ceiling(dim(X.trn)[1]/mini.batch.size)
+  batches = ceiling(dim(X)[1]/mini.batch.size)
     
   for( e in 1:epochs ){
-    mini.batch.order = sample(dim(X.trn)[1])
+    mini.batch.order = sample(dim(X)[1])
     for( mb in 0:(batches-1) ){
       mb.start = (mini.batch.size*mb+1)
-      mb.stop = min((mini.batch.size*(mb+1)), dim(X.trn)[1])
-      mini.batch.X = X.trn[ mini.batch.order[mb.start:mb.stop], , drop=FALSE]
-      mini.batch.Y = Y.trn[ mini.batch.order[mb.start:mb.stop], , drop=FALSE]
+      mb.stop = min((mini.batch.size*(mb+1)), dim(X)[1])
+      mini.batch.X = X[ mini.batch.order[mb.start:mb.stop], , drop=FALSE]
+      mini.batch.Y = Y[ mini.batch.order[mb.start:mb.stop], , drop=FALSE]
       
-      NNmod = forward.prop(NNmod, X.trn=mini.batch.X)
-      NNmod = back.prop(NNmod, X.trn=mini.batch.X, Y.trn=mini.batch.Y,
+      NNmod = forward.prop(NNmod, X=mini.batch.X)
+      NNmod = back.prop(NNmod, X=mini.batch.X, Y=mini.batch.Y,
                         learning.rate=learning.rate)
     }
   }
@@ -341,7 +339,7 @@ predict = function( NNModel=NULL, X=NULL) {
   # assume input dimensions and order of covariates are consistent with the
   # supplied model
   
-  prd.net = forward.prop(nn.trn, X)
+  prd.net = forward.prop(NNModel, X)
   output.layer = names(NNModel$layers)[length(names(NNModel$layers))]
   prd.net$layers[[output.layer]]$z
 }
