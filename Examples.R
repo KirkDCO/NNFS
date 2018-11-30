@@ -763,7 +763,7 @@ img.df = as.data.frame(img)
 X.trn = as.matrix(img.df[,1:2])
 Y.trn = as.matrix(img.df[,3], nrow=dim(img.df)[1])
   
-nn = NNModel(input.dim = 2, layers=c(100, 100, 100, 1), 
+nn = NNModel(input.dim = 2, layers=c(50, 50, 50, 1), 
                  activation=c('leaky.relu', 'leaky.relu', 'leaky.relu', 'sigmoid'))
 
 learning.rate = 0.01
@@ -799,11 +799,11 @@ par(opar)
 
 
 # color image from X,Y
-################
+######################
 library(imager)
 # tutorial https://dahtah.github.io/imager/imager.html
 
-img = load.image('Teton.jpeg')
+img = load.image('Spiral.jpeg')
 img.df = as.data.frame(img)
 X.trn = as.matrix(img.df[1:(dim(img.df)[1]/3),1:2])
 Y.trn = as.matrix(cbind(img.df$value[which(img.df$cc == 1)],
@@ -815,7 +815,7 @@ nn = NNModel(input.dim = 2, layers=c(50, 50, 50, 3),
              activation=c('leaky.relu', 'leaky.relu', 'leaky.relu', 'sigmoid'))
 learning.rate = 0.01
 n.epochs = 2500
-step = 100
+step = 50
 
 img.prd.df = img.df
 nn.trn = nn
@@ -827,13 +827,12 @@ for( e in 0:n.epochs){
     })
     img.prd.df$value = c(value[1,], value[2,],value[3,])
     img.prd = as.cimg(img.prd.df)
-    png(sprintf('Teton_%d.png', e))
+    png(sprintf('Spiral_%d.png', e))
     plot(img.prd, axes = FALSE)
     dev.off()
   }
   nn.trn = train(nn.trn,X.trn,Y.trn, epochs=1, mini.batch.size=25, learning.rate=learning.rate)
 }
-par(opar)
 
 img.prd.df = img.df
 value = apply(img.prd.df[1:(dim(img.prd.df)[1]/3),], 1, function(r) {
