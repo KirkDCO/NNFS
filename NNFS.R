@@ -253,7 +253,8 @@ back.prop = function(NNmod=NULL, X=NULL, Y=NULL, learning.rate=NULL) {
     
     # compute deltas
     if( l == length(layers) ){  #we're at the output layer
-      if( NNmod.old$layers[[layer]]$activation == 'softmax'){
+      if( NNmod.old$layers[[layer]]$activation == 'softmax' |
+          dim(NNmod.old$layers[[layer]]$weights)[2] > 1){
         err = t(error(Y, NNmod.old$layers[[layer]]$z))
         delta = lapply(seq_len(ncol(err)), function(i) as.matrix(err[,i], ncol=1))
       }else{

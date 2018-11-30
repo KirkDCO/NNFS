@@ -753,7 +753,7 @@ plot.random.misclass(nn.trn,X.tst,Y.tst)
 
 
 
-# image from X,y
+# image from X,Y
 ################
 library(imager)
 # review https://dahtah.github.io/imager/imager.html
@@ -765,14 +765,81 @@ Y.trn = as.matrix(img.df[,3], nrow=dim(img.df)[1])
   
 nn = NNModel(input.dim = 2, layers=c(100, 100, 100, 1), 
                  activation=c('leaky.relu', 'leaky.relu', 'leaky.relu', 'sigmoid'))
+
 learning.rate = 0.01
-n.epochs = 25000
-nn.trn = train(nn,X.trn,Y.trn, epochs=n.epochs, mini.batch.size=25, learning.rate=learning.rate)
+n.epochs = 2500
+step = 100
+
+img.prd.df = img.df
+nn.trn = nn
+for( e in 0:n.epochs){
+  if( e %% step == 0 ){
+    print(sprintf('epochs: %d', e))
+    img.prd.df$value = apply(img.prd.df, 1, function(r) {
+      predict(nn.trn, X=matrix(c(r[1], r[2]), nrow=1))
+    })
+    img.prd = as.cimg(img.prd.df)
+    png(sprintf('Petro_%d.png', e))
+    plot(img.prd, axes = FALSE)
+    dev.off()
+  }
+  nn.trn = train(nn.trn,X.trn,Y.trn, epochs=1, mini.batch.size=25, learning.rate=learning.rate)
+}
+par(opar)
 
 img.prd.df = img.df
 img.prd.df$value = apply(img.prd.df, 1, function(r) {
   predict(nn.trn, X=matrix(c(r[1], r[2]), nrow=1))
 })
+img.prd = as.cimg(img.prd.df)
+opar = par(mfrow=c(1,2))
+  plot(as.cimg(img.df))
+  plot(img.prd)
+par(opar)
+
+
+# color image from X,Y
+################
+library(imager)
+# tutorial https://dahtah.github.io/imager/imager.html
+
+img = load.image('Teton.jpeg')
+img.df = as.data.frame(img)
+X.trn = as.matrix(img.df[1:(dim(img.df)[1]/3),1:2])
+Y.trn = as.matrix(cbind(img.df$value[which(img.df$cc == 1)],
+                        img.df$value[which(img.df$cc == 2)],
+                        img.df$value[which(img.df$cc == 3)]),
+                  nrow=dim(X.trn)[1])
+
+nn = NNModel(input.dim = 2, layers=c(50, 50, 50, 3), 
+             activation=c('leaky.relu', 'leaky.relu', 'leaky.relu', 'sigmoid'))
+learning.rate = 0.01
+n.epochs = 2500
+step = 100
+
+img.prd.df = img.df
+nn.trn = nn
+for( e in 0:n.epochs){
+  if( e %% step == 0 ){
+    print(sprintf('epochs: %d', e))
+    value = apply(img.prd.df[1:(dim(img.prd.df)[1]/3),], 1, function(r) {
+      predict(nn.trn, X=matrix(c(r[1], r[2]), nrow=1))
+    })
+    img.prd.df$value = c(value[1,], value[2,],value[3,])
+    img.prd = as.cimg(img.prd.df)
+    png(sprintf('Teton_%d.png', e))
+    plot(img.prd, axes = FALSE)
+    dev.off()
+  }
+  nn.trn = train(nn.trn,X.trn,Y.trn, epochs=1, mini.batch.size=25, learning.rate=learning.rate)
+}
+par(opar)
+
+img.prd.df = img.df
+value = apply(img.prd.df[1:(dim(img.prd.df)[1]/3),], 1, function(r) {
+  predict(nn.trn, X=matrix(c(r[1], r[2]), nrow=1))
+})
+img.prd.df$value = c(value[1,], value[2,],value[3,])
 img.prd = as.cimg(img.prd.df)
 opar = par(mfrow=c(1,2))
   plot(as.cimg(img.df))
