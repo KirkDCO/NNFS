@@ -57,7 +57,7 @@ d.linear = function(z=NULL) {
   # z is the matrix of activations and only supplies the dimensions
   # for the ouput
   
-  matrix(1, nrow=dim(z)[1], ncol=dim(z)[2])
+  matrix(1, nrow=nrow(z), ncol=ncol(z))
 }
 
 d.sigmoid = function(z=NULL) {
@@ -219,8 +219,14 @@ forward.prop = function(NNmod=NULL, X=NULL, dropout.rate=NULL,
     if( mode == 'training' & !is.null(dropout.rate) & l != length(layers) ){
       dropout.mask = matrix( sample( x=c(0,1), size=length(NNmod$layers[[layers[l]]]$z), 
                              replace = TRUE, prob=c(dropout.rate, 1-dropout.rate)),
-                     nrow=dim(NNmod$layers[[layers[l]]]$z)[1],
-                     ncol=dim(NNmod$layers[[layers[l]]]$z)[2]) / (1-dropout.rate)
+                     nrow=nrow(NNmod$layers[[layers[l]]]$z),
+                     ncol=ncol(NNmod$layers[[layers[l]]]$z)) / (1-dropout.rate)
+      #ensure every layer has at least one active node
+      if( any(rowSums(dropout.mask)==0)){
+        i = which(rowSums(dropout.mask) == 0)
+        j = sample(ncol(dropout.mask), size=1)
+        dropout.mask[i,j] = 1
+      }
       NNmod$layers[[layers[l]]]$z = NNmod$layers[[layers[l]]]$z * dropout.mask
     }
   }
@@ -266,7 +272,7 @@ back.prop = function(NNmod=NULL, X=NULL, Y=NULL,
     # compute deltas
     if( l == length(layers) ){  #we're at the output layer
       if( NNmod.old$layers[[layer]]$activation == 'softmax' |
-          dim(NNmod.old$layers[[layer]]$weights)[2] > 1){
+          ncol(NNmod.old$layers[[layer]]$weights) > 1){
         err = t(error(Y, NNmod.old$layers[[layer]]$z))
         delta = lapply(seq_len(ncol(err)), function(i) as.matrix(err[,i], ncol=1))
       }else{
@@ -276,7 +282,7 @@ back.prop = function(NNmod=NULL, X=NULL, Y=NULL,
       next.layer = layers[l+1]
       delta = mapply(function(del, z) {
         wt.del = NNmod.old$layers[[next.layer]]$weights %*% del
-        wt.del * d(as.matrix(z, nrow=dim(wt.del)[1], ncol=dim(wt.del[2])))},
+        wt.del * d(as.matrix(z, nrow=nrow(wt.del), ncol=ncol(wt.del)))},
           delta, split(NNmod.old$layers[[layer]]$z, 
                        row(NNmod.old$layers[[layer]]$z), drop=FALSE),
         SIMPLIFY=FALSE)
@@ -328,13 +334,13 @@ train = function(NNmod=NULL, X=NULL, Y=NULL, mini.batch.size=NULL,
   set.seed(seed)
   
   #compute number of batches needed for a full epoch
-  batches = ceiling(dim(X)[1]/mini.batch.size)
+  batches = ceiling(nrow(X)/mini.batch.size)
     
   for( e in 1:epochs ){
-    mini.batch.order = sample(dim(X)[1])
+    mini.batch.order = sample(nrow(X))
     for( mb in 0:(batches-1) ){
       mb.start = (mini.batch.size*mb+1)
-      mb.stop = min((mini.batch.size*(mb+1)), dim(X)[1])
+      mb.stop = min((mini.batch.size*(mb+1)), nrow(X))
       mini.batch.X = X[ mini.batch.order[mb.start:mb.stop], , drop=FALSE]
       mini.batch.Y = Y[ mini.batch.order[mb.start:mb.stop], , drop=FALSE]
       
