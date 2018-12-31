@@ -222,7 +222,7 @@ forward.prop = function(NNmod=NULL, X=NULL, dropout.rate=NULL,
                      nrow=nrow(NNmod$layers[[layers[l]]]$z),
                      ncol=ncol(NNmod$layers[[layers[l]]]$z)) / (1-dropout.rate)
       #ensure every layer has at least one active node
-      if( any(rowSums(dropout.mask)==0)){
+      if( any(rowSums(dropout.mask) == 0)){
         i = which(rowSums(dropout.mask) == 0)
         j = sample(ncol(dropout.mask), size=1)
         dropout.mask[i,j] = 1
