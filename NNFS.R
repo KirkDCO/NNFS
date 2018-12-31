@@ -138,7 +138,7 @@ error.softmax = function(Y=NULL, Y.hat=NULL) {
 ###############
 
 NNModel = function( input.dim = NULL, layers = NULL, activations = NULL, 
-                    batch.norm = NULL, drop.out.rate = NULL, seed=20150808) {
+                    batch.norm = NULL, seed=20150808) {
   
   # input.dim = dimensions of input
   # layers = vector of number of nodes per hidden/output layer
@@ -177,11 +177,14 @@ NNModel = function( input.dim = NULL, layers = NULL, activations = NULL,
 # Model functions
 #################
 
-forward.prop = function(NNmod = NULL, X=NULL){
+forward.prop = function(NNmod=NULL, X=NULL, dropout.rate=NULL,
+                        mode=c('training', 'testing')){
   
   # NNmod = list generated from NNmod() function above
   # X = matrix of inputs (1 x m) of appropriate dimensions for the NNmod
   #     effectively one row from the training matrix
+  # dropout.rate = rate at which nodes are deactivated 
+  # mode = whether we are in training mode or testing - affects usage of dropout
   
   # returns a list of the outputs generated at each layer
   #         for use in back propagation
@@ -211,12 +214,21 @@ forward.prop = function(NNmod = NULL, X=NULL){
     }else if( NNmod$layers[[layers[l]]]$activation == 'softmax' ){
       NNmod$layers[[layers[l]]]$z = softmax(a)
     }
+    
+    #inverted dropout
+    if( mode == 'training' & !is.null(dropout.rate) & l != length(layers) ){
+      dropout.mask = matrix( sample( x=c(0,1), size=length(NNmod$layers[[layers[l]]]$z), 
+                             replace = TRUE, prob=c(dropout.rate, 1-dropout.rate)),
+                     nrow=dim(NNmod$layers[[layers[l]]]$z)[1],
+                     ncol=dim(NNmod$layers[[layers[l]]]$z)[2]) / (1-dropout.rate)
+      NNmod$layers[[layers[l]]]$z = NNmod$layers[[layers[l]]]$z * dropout.mask
+    }
   }
-  
   NNmod
 }
 
-back.prop = function(NNmod=NULL, X=NULL, Y=NULL, learning.rate=NULL) {
+back.prop = function(NNmod=NULL, X=NULL, Y=NULL, 
+                     learning.rate=NULL) {
   
   # NNModel = list generated from NNModel() function above
   # Y = vector of the actual y-values being modeled
@@ -299,13 +311,16 @@ back.prop = function(NNmod=NULL, X=NULL, Y=NULL, learning.rate=NULL) {
 }
 
 train = function(NNmod=NULL, X=NULL, Y=NULL, mini.batch.size=NULL, 
-                 epochs=NULL, learning.rate=0.1, seed=20180808) {
+                 epochs=NULL, learning.rate=0.1, dropout.rate=NULL, 
+                 seed=20180808) {
   
   # NNMod =list generated from NNModel() function above
   # X = the training dataset, organized as observations X covariates (nXm)
   # Y = the expected outputs for each observations in X
   # mini.batch.size = number of observations used in each training step
   # epochs = number of total passes through the dataset
+  # learning.rate = rate of adjustment of weights and biases
+  # dropout.rate = fractional rate of drop out in training - typically ~0.5
   
   # returns a NNModel list with trained weights
   
@@ -323,15 +338,23 @@ train = function(NNmod=NULL, X=NULL, Y=NULL, mini.batch.size=NULL,
       mini.batch.X = X[ mini.batch.order[mb.start:mb.stop], , drop=FALSE]
       mini.batch.Y = Y[ mini.batch.order[mb.start:mb.stop], , drop=FALSE]
       
-      NNmod = forward.prop(NNmod, X=mini.batch.X)
+      NNmod = forward.prop(NNmod, X=mini.batch.X, dropout.rate=dropout.rate,
+                           mode='training')
       NNmod = back.prop(NNmod, X=mini.batch.X, Y=mini.batch.Y,
                         learning.rate=learning.rate)
     }
   }
+  
+  #store the hyperparameters used for training this network
+  NNmod$params = list(mini.batch.size = mini.batch.size,
+                      epochs = epochs, 
+                      learning.rate = learning.rate,
+                      dropout.rate = dropout.rate,
+                      seed = seed)
   NNmod
 }
 
-predict = function( NNModel=NULL, X=NULL) {
+predict = function(NNModel=NULL, X=NULL) {
   
   # NNModel =list generated from NNModel() function above
   # X = matrix the full training dataset organized as observations X covariates (nXm)
@@ -340,7 +363,7 @@ predict = function( NNModel=NULL, X=NULL) {
   # assume input dimensions and order of covariates are consistent with the
   # supplied model
   
-  prd.net = forward.prop(NNModel, X)
+  prd.net = forward.prop(NNModel, X, mode='testing')
   output.layer = names(NNModel$layers)[length(names(NNModel$layers))]
   prd.net$layers[[output.layer]]$z
 }

@@ -734,7 +734,8 @@ get.acc(nn.trn, X.val, digit.val, show.conf.mat = TRUE)
 get.acc(nn.trn, X.tst, digit.tst, show.conf.mat = TRUE)
 
 for( e in 1:n.epochs) {
-  nn.trn = train(nn.trn,X.trn,Y.trn, epochs=1, mini.batch.size=100, learning.rate=learning.rate)
+  nn.trn = train(nn.trn,X.trn,Y.trn, epochs=1, mini.batch.size=100, 
+                 learning.rate=learning.rate, dropout.rate=.5)
   points( rep(e,3), c(get.acc(nn.trn, X.trn, digit.trn),
                       get.acc(nn.trn, X.val, digit.val),
                       get.acc(nn.trn, X.tst, digit.tst)),
@@ -803,7 +804,7 @@ par(opar)
 library(imager)
 # tutorial https://dahtah.github.io/imager/imager.html
 
-img = load.image('Spiral.jpeg')
+img = load.image('Teton.jpeg')
 img.df = as.data.frame(img)
 X.trn = as.matrix(img.df[1:(dim(img.df)[1]/3),1:2])
 Y.trn = as.matrix(cbind(img.df$value[which(img.df$cc == 1)],
@@ -811,11 +812,11 @@ Y.trn = as.matrix(cbind(img.df$value[which(img.df$cc == 1)],
                         img.df$value[which(img.df$cc == 3)]),
                   nrow=dim(X.trn)[1])
 
-nn = NNModel(input.dim = 2, layers=c(50, 50, 50, 3), 
+nn = NNModel(input.dim = 2, layers=c(150, 150, 150, 3), 
              activation=c('leaky.relu', 'leaky.relu', 'leaky.relu', 'sigmoid'))
 learning.rate = 0.01
 n.epochs = 2500
-step = 50
+step = 100
 
 img.prd.df = img.df
 nn.trn = nn
@@ -827,7 +828,7 @@ for( e in 0:n.epochs){
     })
     img.prd.df$value = c(value[1,], value[2,],value[3,])
     img.prd = as.cimg(img.prd.df)
-    png(sprintf('Spiral_%d.png', e))
+    png(sprintf('Teton_%d.png', e))
     plot(img.prd, axes = FALSE)
     dev.off()
   }
