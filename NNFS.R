@@ -220,7 +220,7 @@ forward.prop = function(NNmod=NULL, X=NULL, dropout.rate=NULL,
       dropout.mask = matrix( sample( x=c(0,1), size=length(NNmod$layers[[layers[l]]]$z), 
                              replace = TRUE, prob=c(dropout.rate, 1-dropout.rate)),
                      nrow=nrow(NNmod$layers[[layers[l]]]$z),
-                     ncol=ncol(NNmod$layers[[layers[l]]]$z)) / (1-dropout.rate)
+                     ncol=ncol(NNmod$layers[[layers[l]]]$z)) #/ (1-dropout.rate)
       #ensure every layer has at least one active node
       if( any(rowSums(dropout.mask) == 0)){
         i = which(rowSums(dropout.mask) == 0)
@@ -228,6 +228,13 @@ forward.prop = function(NNmod=NULL, X=NULL, dropout.rate=NULL,
         dropout.mask[i,j] = 1
       }
       NNmod$layers[[layers[l]]]$z = NNmod$layers[[layers[l]]]$z * dropout.mask
+    }
+    
+    #activation adjustment was done here due to this particular implementation
+    #being very sensitive to exploding gradients
+    if( mode == 'testing' & !is.null(NNmod$params$dropout.rate) ){
+      NNmod$layers[[layers[l]]]$z = NNmod$layers[[layers[l]]]$z * 
+        (1 - NNmod$params$dropout.rate)
     }
   }
   NNmod

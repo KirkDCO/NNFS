@@ -374,19 +374,20 @@ for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
 # 2-layer leaky relu classification, clusters
 #############################################
 library(MASS)
-nn = NNModel(input.dim = 2, layers=c(3,1), activation=c('leaky.relu','sigmoid'))
-X.trn = rbind( mvrnorm(75, mu=c(1,2), Sigma = diag(.25,nrow=2,ncol=2)),
+nn = NNModel(input.dim = 2, layers=c(5,5,5,1), 
+             activation=c('leaky.relu','leaky.relu','leaky.relu','sigmoid'))
+X.trn = rbind( mvrnorm(75, mu=c(0,2), Sigma = diag(.25,nrow=2,ncol=2)),
                mvrnorm(75, mu=c(3,4), Sigma = diag(.25,nrow=2,ncol=2)),
-               mvrnorm(150, mu=c(2,3), Sigma = diag(5,nrow=2,ncol=2)))
-Y.trn = matrix( c(rep(0,150), rep(1,150)) )
+               mvrnorm(250, mu=c(2,3), Sigma = diag(5,nrow=2,ncol=2)))
+Y.trn = matrix( c(rep(0,150), rep(1,250)) )
 
-nn.trn = train(nn,X.trn,Y.trn, epochs=10000, mini.batch.size=15, learning.rate=0.05)
+nn.trn = train(nn,X.trn,Y.trn, epochs=2500, mini.batch.size=15, learning.rate=0.1)
 
 nn.prd = predict(nn.trn, X.trn)
 Y.trn - nn.prd
 
 #plot classes and decision boundary
-plot(X.trn[,1], X.trn[,2], col=c(rep('red',150),rep('blue',150)),
+plot(X.trn[,1], X.trn[,2], col=c(rep('red',150),rep('blue',250)),
      pch=19)
 cut.point = .5
 for( x1 in seq(from=min(X.trn[,1]), to=max(X.trn[,1]), length.out=200) ) {
@@ -713,8 +714,8 @@ n.epochs = 1000
 # 5-layer
 nn.trn = NNModel(input.dim = 784, layers=c(25, 20, 15, 10, 10), 
                  activation=c('leaky.relu', 'leaky.relu', 'leaky.relu', 'leaky.relu', 'softmax'))
-learning.rate = 0.005
-n.epochs = 5000
+learning.rate = 0.0001
+n.epochs = 10000
 
 # multiple epochs with plotting between epochs
 # set up accuracy plotting
@@ -735,7 +736,7 @@ get.acc(nn.trn, X.tst, digit.tst, show.conf.mat = TRUE)
 
 for( e in 1:n.epochs) {
   nn.trn = train(nn.trn,X.trn,Y.trn, epochs=1, mini.batch.size=100, 
-                 learning.rate=learning.rate, dropout.rate=.5)
+                 learning.rate=learning.rate, dropout.rate=.2)
   points( rep(e,3), c(get.acc(nn.trn, X.trn, digit.trn),
                       get.acc(nn.trn, X.val, digit.val),
                       get.acc(nn.trn, X.tst, digit.tst)),
